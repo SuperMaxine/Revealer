@@ -1292,7 +1292,8 @@ public class Analyzer {
                 Node b = loopNodeList.get(j);
                 Node pA = pattern.getDirectParent(a);
                 Node pB = pattern.getDirectParent(b);
-                if (onDirectNext(pA, pB) || pA.self == "|" && pA == pB) {
+//                if (onDirectNext(pA, pB) || pA.self == "|" && pA == pB) {
+                if (onDirectNext(pA, pB)) {
                     ArrayList<Node> nPath = new ArrayList<Node>();
                     nPath.add(a);
                     nPath.add(b);

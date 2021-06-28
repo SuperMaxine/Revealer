@@ -40,3 +40,5 @@ data/
 result/
 .DS_Store
 *~
+.idea/
+Revealer.iml

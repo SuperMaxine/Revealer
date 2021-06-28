@@ -130,7 +130,9 @@ public class RedosTester {
 
 	public static void main(String[] args) throws Exception {
 		if (args.length == 1)
-			RedosTester.testSingleRegex(args[0]);
+//			RedosTester.testSingleRegex(args[0]);
+			RedosTester.testSingleRegex("^(((a*b*)c)d)+$");
+//			RedosTester.testSingleRegex("a*");
 		else if (args.length == 2)
 			RedosTester.vulValidation(args[0], args[1]);
 		else
