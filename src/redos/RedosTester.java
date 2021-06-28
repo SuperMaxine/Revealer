@@ -86,7 +86,9 @@ public class RedosTester {
 		Pattern p = Pattern.compile(regex);
 		Analyzer redosAnalyzer = new Analyzer(p, max_length);
 		redosAnalyzer.doStaticAnalysis();
+//		redosAnalyzer.doDiyAnalysis(log, -1, threshold);
 		redosAnalyzer.doDynamicAnalysis(log, -1, threshold);
+
 		if (!redosAnalyzer.isVulnerable())
 			System.out.print("Contains no vulnerablity\n");
 		log.flush();

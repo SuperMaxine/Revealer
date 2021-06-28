@@ -711,6 +711,8 @@ public class Analyzer {
                     addPath(getDirectPath(path_end.sub_next), false);
                     suffixHead = path_end;
                     break;
+                case MY_DIY_LOOP:
+
             }
         }
 
@@ -1183,11 +1185,30 @@ public class Analyzer {
     }
 
     public enum VulType {
-        LOOP_IN_LOOP, BRANCH_IN_LOOP, LOOP_AFTER_LOOP
+        LOOP_IN_LOOP, BRANCH_IN_LOOP, LOOP_AFTER_LOOP, MY_DIY_LOOP
     }
 
     public enum CurState {
         SATISFIED, UNSATISFIED, ONLEAVE
+    }
+
+    public void doDiyAnalysis(BufferedWriter outVul, int index, double threshold) throws IOException {
+        possibleVuls = new ArrayList<VulStructure>();
+        ArrayList<ArrayList<Node>> Testpath = new ArrayList<ArrayList<Node>>();
+        for (Node node : loopNodes) {
+            ArrayList<Node> path = new ArrayList<Node>();
+            path.add(node);
+            if (node.direct_next != null)
+                getPathFromLoop(node.direct_next, path, true);
+            if (node.sub_next != null)
+                getPathFromLoop(node.sub_next, path, false);
+            Testpath.add(path);
+        }
+        for (ArrayList<Node> path : Testpath){
+            VulStructure newVul = new VulStructure(path, VulType.MY_DIY_LOOP);
+            possibleVuls.add(newVul);
+        }
+        System.out.print("test");
     }
 
     public void doDynamicAnalysis(BufferedWriter outVul, int index, double threshold) throws IOException {
@@ -1306,6 +1327,7 @@ public class Analyzer {
                 }
             }
         }
+        ArrayList<ArrayList<Node>> Testpath = new ArrayList<ArrayList<Node>>();
         for (Node node : loopNodes) {
             ArrayList<Node> path = new ArrayList<Node>();
             path.add(node);
@@ -1313,7 +1335,9 @@ public class Analyzer {
                 getPathFromLoop(node.direct_next, path, true);
             if (node.sub_next != null)
                 getPathFromLoop(node.sub_next, path, false);
+            Testpath.add(path);
         }
+        System.out.print(Testpath);
     }
 
     private ArrayList<Node> getDirectPath(Node node) {
