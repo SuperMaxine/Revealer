@@ -30,6 +30,7 @@ public class Analyzer {
     ArrayList<ArrayList<Node>> loopInLoop;
     ArrayList<ArrayList<Node>> branchInLoop;
     ArrayList<ArrayList<Node>> loopAfterLoop;
+    ArrayList<ArrayList<Node>> diyLoop;
     Set<Node> loopNodes;
 
     ArrayList<VulStructure> possibleVuls;
@@ -1214,6 +1215,22 @@ public class Analyzer {
     public void doDynamicAnalysis(BufferedWriter outVul, int index, double threshold) throws IOException {
         possibleVuls = new ArrayList<VulStructure>();
 
+        System.out.print(diyLoop);
+        System.out.print(loopInLoop);
+        System.out.print(branchInLoop);
+        System.out.print(loopAfterLoop);
+
+        for (ArrayList<Node> path : diyLoop) {
+            VulStructure newVul = new VulStructure(path, VulType.LOOP_IN_LOOP);
+            possibleVuls.add(newVul);
+        }
+
+        System.out.print(possibleVuls);
+        for(VulStructure vulCase : possibleVuls){
+            vulCase.checkPathSharing();
+            System.out.print(vulCase);
+        }
+
         for (ArrayList<Node> path : loopInLoop) {
             VulStructure newVul = new VulStructure(path, VulType.LOOP_IN_LOOP);
             possibleVuls.add(newVul);
@@ -1247,6 +1264,7 @@ public class Analyzer {
 
         for (VulStructure vulCase : possibleVuls) {
             vulCase.checkPathSharing();
+            System.out.print(vulCase);
             if (vulCase.result == Existance.EXIST) {
                 if (checkResult(vulCase.prefix.toString(), vulCase.pump.toString(), vulCase.suffix.toString(),
                         maxLength, threshold)) {
@@ -1319,11 +1337,13 @@ public class Analyzer {
                     nPath.add(a);
                     nPath.add(b);
                     loopAfterLoop.add(nPath);
+//                    diyLoop.add(nPath);
                 } else if (onDirectNext(pB, pA)) {
                     ArrayList<Node> nPath = new ArrayList<Node>();
                     nPath.add(b);
                     nPath.add(a);
                     loopAfterLoop.add(nPath);
+//                    diyLoop.add(nPath);
                 }
             }
         }
@@ -1447,20 +1467,27 @@ public class Analyzer {
         curr_path.addAll(prev_path);
         curr_path.add(node);
         if (pattern.isBacktrackLoop(node)) {
-            if (direct)
+            if (direct){
                 loopAfterLoop.add(curr_path);
-            else if (!pattern.isCertainCntLoop(node))
+                diyLoop.add(curr_path);
+            }
+            else if (!pattern.isCertainCntLoop(node)) {
                 loopInLoop.add(curr_path);
+                diyLoop.add(curr_path);
+            }
             getPathFromLoop(node.direct_next, curr_path, direct);
             getPathFromLoop(node.sub_next, curr_path, direct);
         } else if (node instanceof Branch) {
-            if (!direct)
+            if (!direct) {
                 branchInLoop.add(curr_path);
+                diyLoop.add(curr_path);
+            }
             for (Node branch_node : node.new_atoms)
                 getPathFromLoop(branch_node, curr_path, direct);
             getPathFromLoop(node.direct_next, curr_path, direct);
         } else if (node instanceof Ques && !direct) {
             branchInLoop.add(curr_path);
+            diyLoop.add(curr_path);
             node.new_atoms = new Node[] { node.atom };
             getPathFromLoop(node.direct_next, curr_path, direct);
         } else if (node.direct_next != null)
@@ -1484,6 +1511,7 @@ public class Analyzer {
         loopInLoop = new ArrayList<ArrayList<Node>>();
         branchInLoop = new ArrayList<ArrayList<Node>>();
         loopAfterLoop = new ArrayList<ArrayList<Node>>();
+        diyLoop = new ArrayList<ArrayList<Node>>();
 
         regex = pattern.pattern();
     }
