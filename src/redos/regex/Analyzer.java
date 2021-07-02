@@ -30,6 +30,7 @@ public class Analyzer {
     ArrayList<ArrayList<Node>> loopInLoop;
     ArrayList<ArrayList<Node>> branchInLoop;
     ArrayList<ArrayList<Node>> loopAfterLoop;
+    ArrayList<ArrayList<Node>>  diyPath;
     Set<Node> loopNodes;
 
     ArrayList<VulStructure> possibleVuls;
@@ -1193,6 +1194,9 @@ public class Analyzer {
     public void doDynamicAnalysis(BufferedWriter outVul, int index, double threshold) throws IOException {
         possibleVuls = new ArrayList<VulStructure>();
 
+        System.out.print(this.pattern.root);
+
+
         for (ArrayList<Node> path : loopInLoop) {
             VulStructure newVul = new VulStructure(path, VulType.LOOP_IN_LOOP);
             possibleVuls.add(newVul);
@@ -1423,10 +1427,14 @@ public class Analyzer {
         curr_path.addAll(prev_path);
         curr_path.add(node);
         if (pattern.isBacktrackLoop(node)) {
-            if (direct)
+            if (direct) {
                 loopAfterLoop.add(curr_path);
-            else if (!pattern.isCertainCntLoop(node))
+                diyPath.add(curr_path);
+            }
+            else if (!pattern.isCertainCntLoop(node)) {
                 loopInLoop.add(curr_path);
+                diyPath.add(curr_path);
+            }
             getPathFromLoop(node.direct_next, curr_path, direct);
             getPathFromLoop(node.sub_next, curr_path, direct);
         } else if (node instanceof Branch) {
