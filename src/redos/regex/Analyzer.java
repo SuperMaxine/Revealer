@@ -30,6 +30,7 @@ public class Analyzer {
     ArrayList<ArrayList<Node>> loopInLoop;
     ArrayList<ArrayList<Node>> branchInLoop;
     ArrayList<ArrayList<Node>> loopAfterLoop;
+    ArrayList<ArrayList<Node>> diyPaths;
     Set<Node> loopNodes;
 
     ArrayList<VulStructure> possibleVuls;
@@ -1193,6 +1194,26 @@ public class Analyzer {
     public void doDynamicAnalysis(BufferedWriter outVul, int index, double threshold) throws IOException {
         possibleVuls = new ArrayList<VulStructure>();
 
+//        ArrayList<Node> tpath = new ArrayList<Node>(getDirectPath(this.pattern.root));
+//        VulStructure tVul = new VulStructure(tpath, VulType.BRANCH_IN_LOOP);
+//        tVul.pathSharing.add(getDirectPath(this.pattern.root.direct_next.direct_next.sub_next));
+//        System.out.print(tVul.getPump()+"\n");
+//        System.out.print(tVul.getShortestMatching(getDirectPath(this.pattern.root))+"\n");
+
+        ArrayList<Node> tpath = new ArrayList<Node>(getDirectPath(this.pattern.root.direct_next.direct_next.sub_next));
+        VulStructure tVul = new VulStructure(tpath, VulType.BRANCH_IN_LOOP);
+        tVul.pathSharing.add(getDirectPath(this.pattern.root.direct_next.direct_next.sub_next));
+        System.out.print(tVul.getPump()+"\n");
+        System.out.print(tVul.getShortestMatching(getDirectPath(this.pattern.root))+"\n");
+
+//        for(ArrayList<Node> path : diyPaths){
+//            VulStructure tVul = new VulStructure(path, VulType.LOOP_IN_LOOP);
+//            tVul.checkPathSharing();
+//            System.out.print(tVul.getPump());
+//            System.out.print("\n");
+//        }
+
+
         for (ArrayList<Node> path : loopInLoop) {
             VulStructure newVul = new VulStructure(path, VulType.LOOP_IN_LOOP);
             possibleVuls.add(newVul);
@@ -1306,6 +1327,17 @@ public class Analyzer {
                 }
             }
         }
+
+        for (Node node : loopNodes) {
+            ArrayList<Node> path = new ArrayList<Node>();
+            path.add(node);
+            if (node.direct_next != null)
+                getAllPathFromLoop(node.direct_next, path);
+            if (node.sub_next != null)
+                getAllPathFromLoop(node.sub_next, path);
+        }
+
+
         for (Node node : loopNodes) {
             ArrayList<Node> path = new ArrayList<Node>();
             path.add(node);
@@ -1416,6 +1448,18 @@ public class Analyzer {
         return possible_vulnerability;
     }
 
+    private void getAllPathFromLoop(Node node, ArrayList<Node> prev_path){
+        if (node == null) {
+            diyPaths.add(prev_path);
+            return;
+        }
+        ArrayList<Node> curr_path = new ArrayList<Node>();
+        curr_path.addAll(prev_path);
+        curr_path.add(node);
+        getAllPathFromLoop(node.direct_next, curr_path);
+        getAllPathFromLoop(node.sub_next, curr_path);
+    }
+
     private void getPathFromLoop(Node node, ArrayList<Node> prev_path, boolean direct) {
         if (node == null)
             return;
@@ -1460,6 +1504,7 @@ public class Analyzer {
         loopInLoop = new ArrayList<ArrayList<Node>>();
         branchInLoop = new ArrayList<ArrayList<Node>>();
         loopAfterLoop = new ArrayList<ArrayList<Node>>();
+        diyPaths = new ArrayList<ArrayList<Node>>();
 
         regex = pattern.pattern();
     }
