@@ -712,6 +712,8 @@ public class Analyzer {
                     addPath(getDirectPath(path_end.sub_next), false);
                     suffixHead = path_end;
                     break;
+                case DIY_LOOP:
+                    // Do something
             }
         }
 
@@ -1184,7 +1186,7 @@ public class Analyzer {
     }
 
     public enum VulType {
-        LOOP_IN_LOOP, BRANCH_IN_LOOP, LOOP_AFTER_LOOP
+        LOOP_IN_LOOP, BRANCH_IN_LOOP, LOOP_AFTER_LOOP, DIY_LOOP
     }
 
     public enum CurState {
@@ -1290,6 +1292,12 @@ public class Analyzer {
 
     public void doStaticAnalysis() {
         ArrayList<Node> loopNodeList = new ArrayList<Node>(loopNodes);
+
+        for(Node node : loopNodes){
+            // do something
+        }
+
+
         for (int i = 0; i < loopNodeList.size() - 1; i++) {
             for (int j = i + 1; j < loopNodeList.size(); j++) {
                 Node a = loopNodeList.get(i);
@@ -1427,14 +1435,10 @@ public class Analyzer {
         curr_path.addAll(prev_path);
         curr_path.add(node);
         if (pattern.isBacktrackLoop(node)) {
-            if (direct) {
+            if (direct)
                 loopAfterLoop.add(curr_path);
-                diyPath.add(curr_path);
-            }
-            else if (!pattern.isCertainCntLoop(node)) {
+            else if (!pattern.isCertainCntLoop(node))
                 loopInLoop.add(curr_path);
-                diyPath.add(curr_path);
-            }
             getPathFromLoop(node.direct_next, curr_path, direct);
             getPathFromLoop(node.sub_next, curr_path, direct);
         } else if (node instanceof Branch) {
