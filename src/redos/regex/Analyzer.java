@@ -1191,7 +1191,7 @@ public class Analyzer {
         SATISFIED, UNSATISFIED, ONLEAVE
     }
 
-    public void doDynamicAnalysis(BufferedWriter outVul, int index, double threshold) throws IOException {
+    public void  doDynamicAnalysis(BufferedWriter outVul, int index, double threshold) throws IOException {
         possibleVuls = new ArrayList<VulStructure>();
 
 //        ArrayList<Node> tpath = new ArrayList<Node>(getDirectPath(this.pattern.root));
@@ -1328,13 +1328,12 @@ public class Analyzer {
             }
         }
 
+        // 将所有Loop节点的路径存入diyPath
         for (Node node : loopNodes) {
-            ArrayList<Node> path = new ArrayList<Node>();
-            path.add(node);
-            if (node.direct_next != null)
-                getAllPathFromLoop(node.direct_next, path);
-            if (node.sub_next != null)
-                getAllPathFromLoop(node.sub_next, path);
+            ArrayList<Node> tmp = new ArrayList<Node>();
+            tmp.addAll(getPath(node.sub_next, new ArrayList<Node>()));
+            diyPaths.add(tmp);
+            System.out.print(tmp);
         }
 
 
@@ -1448,16 +1447,17 @@ public class Analyzer {
         return possible_vulnerability;
     }
 
-    private void getAllPathFromLoop(Node node, ArrayList<Node> prev_path){
+    private ArrayList<Node> getPath(Node node, ArrayList<Node> prev_path){
         if (node == null) {
-            diyPaths.add(prev_path);
-            return;
+            return prev_path;
         }
         ArrayList<Node> curr_path = new ArrayList<Node>();
         curr_path.addAll(prev_path);
         curr_path.add(node);
-        getAllPathFromLoop(node.direct_next, curr_path);
-        getAllPathFromLoop(node.sub_next, curr_path);
+        if(node.sub_next != null)
+            curr_path.addAll(getPath(node.sub_next, new ArrayList<Node>()));
+        curr_path.addAll(getPath(node.direct_next, new ArrayList<Node>()));
+        return curr_path;
     }
 
     private void getPathFromLoop(Node node, ArrayList<Node> prev_path, boolean direct) {
