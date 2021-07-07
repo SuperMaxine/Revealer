@@ -2,14 +2,7 @@ package redos.regex;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import com.alibaba.fastjson.JSONObject;
 
@@ -1200,11 +1193,11 @@ public class Analyzer {
 //        System.out.print(tVul.getPump()+"\n");
 //        System.out.print(tVul.getShortestMatching(getDirectPath(this.pattern.root))+"\n");
 
-        ArrayList<Node> tpath = new ArrayList<Node>(getDirectPath(this.pattern.root.direct_next.direct_next.sub_next));
-        VulStructure tVul = new VulStructure(tpath, VulType.BRANCH_IN_LOOP);
-        tVul.pathSharing.add(getDirectPath(this.pattern.root.direct_next.direct_next.sub_next));
-        System.out.print(tVul.getPump()+"\n");
-        System.out.print(tVul.getShortestMatching(getDirectPath(this.pattern.root))+"\n");
+//        ArrayList<Node> tpath = new ArrayList<Node>(getDirectPath(this.pattern.root.direct_next.direct_next.sub_next));
+//        VulStructure tVul = new VulStructure(tpath, VulType.BRANCH_IN_LOOP);
+//        tVul.pathSharing.add(getDirectPath(this.pattern.root.direct_next.direct_next.sub_next));
+//        System.out.print(tVul.getPump()+"\n");
+//        System.out.print(tVul.getShortestMatching(getDirectPath(this.pattern.root))+"\n");
 
 //        for(ArrayList<Node> path : diyPaths){
 //            VulStructure tVul = new VulStructure(path, VulType.LOOP_IN_LOOP);
@@ -1328,6 +1321,10 @@ public class Analyzer {
             }
         }
 
+//        for(Node node:getPath(this.pattern.root,new ArrayList<Node>())){
+//            System.out.print(node.getClass()+"\t"+pattern.isCharSet(node)+"\n");
+//        }
+
         // 将所有Loop节点的路径存入diyPath
         for (Node node : loopNodes) {
             ArrayList<Node> tmp = new ArrayList<Node>();
@@ -1336,16 +1333,17 @@ public class Analyzer {
             System.out.print(tmp);
         }
 
+        // 判断diyPath中的两两路径之间的关系 0：无关 1：前缀覆盖 2：后缀覆盖 3：完全覆盖
         for(int i = 0; i < diyPaths.size() - 1; i++){
             for(int j = i + 1; j < diyPaths.size(); j++){
                 int tmp = -1;
                 if(diyPaths.get(i).size() < diyPaths.get(j).size())
-                    tmp = judgeTwo(diyPaths.get(i), diyPaths.get(j));
+                    tmp = judgeTwoPath(diyPaths.get(i), diyPaths.get(j));
                 else
-                    tmp = judgeTwo(diyPaths.get(j),diyPaths.get(i));
-                System.out.print(diyPaths.get(i));
-                System.out.print(diyPaths.get(j));
-                System.out.print(tmp);
+                    tmp = judgeTwoPath(diyPaths.get(j),diyPaths.get(i));
+                System.out.print(diyPaths.get(i) + "\n");
+                System.out.print(diyPaths.get(j) + "\n");
+                System.out.print(tmp + "\n\n");
             }
         }
 
@@ -1474,26 +1472,79 @@ public class Analyzer {
     }
 
     public boolean equalNode(Node node1, Node node2){
-        return true;
+//        if(node1.getClass()!=node2.getClass())return false;
+//        else
+//            if(pattern.isCharSet(node1))
+//                return (pattern.equalCharSet((Pattern.CharProperty) node1, (Pattern.CharProperty) node2));
+//            else
+//                return node1.self.equals(node2.self);
+        LinkedHashSet<Integer> set1 = pattern.getMatchSet(node1);
+        LinkedHashSet<Integer> set2 = pattern.getMatchSet(node2);
+        if(set1 == null && set2 ==null){//null就直接不比了
+            return true;
+        }
+
     }
 
     // 输入两个节点，输出两者是否存在前缀包含、后缀包含、完全包含，默认path1短于path2
-    public int judgeTwo(ArrayList<Node> path1, ArrayList<Node> path2){
-        int status;
-        boolean front = true;
+    public int judgeTwoPath(ArrayList<Node> path1, ArrayList<Node> path2){
+        int front = 0;
         boolean back = true;
+        // 查看是否是前缀包含
         for (int i = 0; i < path1.size(); i++) {
-            if (path1.get(i) != path2.get(i)) {
-                front = false;
-                break;
+            LinkedHashSet<Integer> set1 = pattern.getMatchSet(path1.get(i));
+            LinkedHashSet<Integer> set2 = pattern.getMatchSet(path2.get(i));
+            if(set1 == null && set2 ==null){
+                continue;// 都是null默认匹配了，不比了直接继续
             }
+            else if(set1 == null || set2 == null){
+                break; // 一个为空另一个不为空，表示不匹配，退出
+            }
+            else{
+                int cnt = 0;
+                Iterator i1 = set1.iterator();
+                Iterator i2 = set2.iterator();
+                while(i1.hasNext()&&i2.hasNext()){
+                    if(i1.next()==i2.next())cnt++;
+                    else break;
+                }
+
+                if(cnt==0)
+                    break; // 完全不匹配，直接退出
+                else if(cnt != set1.size() || cnt != set2.size()){
+                    front += cnt; // 匹配一部分，但是中途不匹配了，front加新匹配的个数后退出
+                    break;
+                }
+                front += cnt; // 全部匹配，front加新匹配的个数，继续
+            }
+//            if (!equalNode(path1.get(i), path2.get(i))) {
+//                front = false;
+//                break;
+//            }
         }
+
+        // 查看是否是后缀包含
         int c = path2.size() - path1.size();
         for (int i = path1.size()-1; i >= 0; i--) {
-            if (path1.get(i) != path2.get(i + c)) {
-                back = false;
-                break;
+            LinkedHashSet<Integer> set1 = pattern.getMatchSet(path1.get(i));
+            LinkedHashSet<Integer> set2 = pattern.getMatchSet(path2.get(i + c));
+            if(set1 == null && set2 ==null){//都是null默认匹配了，不比了直接继续
+                continue;
             }
+            else if(set1 == null || set2 == null){
+                break; // 一个为空另一个不为空，表示不匹配，退出
+            }
+            else{
+                ArrayList<Integer> arr1 = new ArrayList<Integer>(set1);//为了能够从后往前遍历转为ArrayList
+                ArrayList<Integer> arr2 = new ArrayList<Integer>(set2);
+                
+
+            }
+
+//            if (!equalNode(path1.get(i), path2.get(i + c))) {
+//                back = false;
+//                break;
+//            }
         }
         if (front && back)
             return 3;

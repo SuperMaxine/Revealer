@@ -25,6 +25,7 @@ import java.util.function.Predicate;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import java.util.LinkedHashSet;
 
 import redos.Trace;
 import redos.utils.PatternUtils;
@@ -3148,7 +3149,7 @@ public final class Pattern implements java.io.Serializable {
     /**
      * Abstract node class to match one character satisfying some boolean property.
      */
-    private static abstract class CharProperty extends Node {
+    public static abstract class CharProperty extends Node {
         Set<Integer> charSet = new HashSet<Integer>();
         Integer defaultChar = 0;
         boolean except = false;
@@ -5979,8 +5980,8 @@ public final class Pattern implements java.io.Serializable {
         return null;
     }
 
-    public Set<Integer> getMatchSet(Node node) {
-        Set<Integer> result = new HashSet<Integer>();
+    public LinkedHashSet <Integer> getMatchSet(Node node) {
+        LinkedHashSet <Integer> result = new LinkedHashSet<Integer>();
         if (node instanceof SliceNode) {
             String str = ((SliceNode) node).getSliceBuffer();
             if (str.length() == 0)
@@ -6188,6 +6189,22 @@ public final class Pattern implements java.io.Serializable {
             return true;
         else
             return false;
+    }
+
+    public boolean isCharSet(Node cur){
+        if(cur instanceof CharProperty)
+            return true;
+        return false;
+    }
+
+    public boolean equalCharSet(CharProperty node1, CharProperty node2){
+        if(node1.charSet == null || node2.charSet ==null){//null就直接不比了
+            return false;
+        }
+        if(node1.charSet.size()!=node2.charSet.size()){//大小不同也不用比了
+            return false;
+        }
+        return node1.charSet.containsAll(node2.charSet);//最后比containsAll
     }
 
     private void paintTransformed(Node prev, Node cur, String edgename, Table nodes, Table edges,
