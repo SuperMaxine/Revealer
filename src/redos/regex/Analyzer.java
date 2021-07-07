@@ -1336,6 +1336,18 @@ public class Analyzer {
             System.out.print(tmp);
         }
 
+        for(int i = 0; i < diyPaths.size() - 1; i++){
+            for(int j = i + 1; j < diyPaths.size(); j++){
+                int tmp = -1;
+                if(diyPaths.get(i).size() < diyPaths.get(j).size())
+                    tmp = judgeTwo(diyPaths.get(i), diyPaths.get(j));
+                else
+                    tmp = judgeTwo(diyPaths.get(j),diyPaths.get(i));
+                System.out.print(diyPaths.get(i));
+                System.out.print(diyPaths.get(j));
+                System.out.print(tmp);
+            }
+        }
 
         for (Node node : loopNodes) {
             ArrayList<Node> path = new ArrayList<Node>();
@@ -1447,6 +1459,7 @@ public class Analyzer {
         return possible_vulnerability;
     }
 
+    // 输入一个节点，输出其内所包含的路径
     private ArrayList<Node> getPath(Node node, ArrayList<Node> prev_path){
         if (node == null) {
             return prev_path;
@@ -1458,6 +1471,38 @@ public class Analyzer {
             curr_path.addAll(getPath(node.sub_next, new ArrayList<Node>()));
         curr_path.addAll(getPath(node.direct_next, new ArrayList<Node>()));
         return curr_path;
+    }
+
+    public boolean equalNode(Node node1, Node node2){
+        return true;
+    }
+
+    // 输入两个节点，输出两者是否存在前缀包含、后缀包含、完全包含，默认path1短于path2
+    public int judgeTwo(ArrayList<Node> path1, ArrayList<Node> path2){
+        int status;
+        boolean front = true;
+        boolean back = true;
+        for (int i = 0; i < path1.size(); i++) {
+            if (path1.get(i) != path2.get(i)) {
+                front = false;
+                break;
+            }
+        }
+        int c = path2.size() - path1.size();
+        for (int i = path1.size()-1; i >= 0; i--) {
+            if (path1.get(i) != path2.get(i + c)) {
+                back = false;
+                break;
+            }
+        }
+        if (front && back)
+            return 3;
+        else if (front)
+            return 1;
+        else if (back)
+            return 2;
+        else
+            return 0;
     }
 
     private void getPathFromLoop(Node node, ArrayList<Node> prev_path, boolean direct) {
