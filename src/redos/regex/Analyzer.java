@@ -31,6 +31,7 @@ public class Analyzer {
     ArrayList<ArrayList<Node>> branchInLoop;
     ArrayList<ArrayList<Node>> loopAfterLoop;
     ArrayList<ArrayList<Node>> diyPaths;
+    ArrayList<Set<Integer>> diyMatchs;
     Set<Node> loopNodes;
 
     ArrayList<VulStructure> possibleVuls;
@@ -1333,7 +1334,21 @@ public class Analyzer {
             ArrayList<Node> tmp = new ArrayList<Node>();
             tmp.addAll(getPath(node.sub_next, new ArrayList<Node>()));
             diyPaths.add(tmp);
-            System.out.print(tmp);
+            System.out.print(tmp+"\n");
+        }
+
+        for(ArrayList<Node> path : diyPaths){
+            for(Node node : path){
+                if (pattern.isCharSet(node))
+//                    System.out.print(pattern.getFullMatchSet(node));
+                    diyMatchs.add(pattern.getFullMatchSet(node));
+                else
+//                    System.out.print(pattern.getFullMatchList(node));
+                    for(Integer i : pattern.getFullMatchList(node)){
+                        diyMatchs.add(new HashSet<Integer>(i));
+                    }
+            }
+//            System.out.print("\n");
         }
 
         for(int i = 0; i < diyPaths.size() - 1; i++){

@@ -6020,6 +6020,62 @@ public final class Pattern implements java.io.Serializable {
         return result;
     }
 
+    public Set<Integer> getFullMatchSet(Node node) {
+        Set<Integer> result = new HashSet<Integer>();
+        if (node instanceof Single){
+            Single charNode = (Single) node;
+            result.addAll(charNode.charSet);
+        }
+        else if (node instanceof CharProperty){
+            CharProperty charNode = (CharProperty) node;
+            if (charNode.charSet.size() > 0)
+                result.addAll(charNode.charSet);
+        }
+        if (node instanceof CharProperty) {
+            Node p = node.direct_parent;
+            if (p == null)
+                p = getDirectParent(node);
+            if (p.direct_prev instanceof Neg) {
+                Set<Integer> negResult = getFirstMatchSet(p.direct_prev.sub_next);
+                if (negResult != null) {
+                    result.removeAll(negResult);
+                }
+            }
+        }
+        return result;
+    }
+
+    public ArrayList<Integer> getFullMatchList(Node node) {
+        ArrayList<Integer> result = new ArrayList<Integer>();
+        if (node instanceof SliceNode) {
+            String str = ((SliceNode) node).getSliceBuffer();
+            if (str.length() == 0)
+                return null;
+            for(String retval : str.split("")){
+                result.add((int) retval.charAt(0));
+            }
+        } else if (node instanceof BnM) {
+            String str = ((BnM) node).getSliceBuffer();
+            if (str.length() == 0)
+                return null;
+            for(String retval : str.split("")){
+                result.add((int) retval.charAt(0));
+            }
+        }
+        if(node instanceof SliceNode || node instanceof BnM) {
+            Node p = node.direct_parent;
+            if (p == null)
+                p = getDirectParent(node);
+            if (p.direct_prev instanceof Neg) {
+                Set<Integer> negResult = getFirstMatchSet(p.direct_prev.sub_next);
+                if (negResult != null) {
+                    result.removeAll(negResult);
+                }
+            }
+        }
+        return result;
+    }
+
     public Node getDirectParent(Node node) {
         Node p = node;
         while (p.direct_prev != null) {
@@ -6190,6 +6246,12 @@ public final class Pattern implements java.io.Serializable {
             return false;
     }
 
+    public boolean isCharSet(Node cur){
+        if(cur instanceof CharProperty)
+            return true;
+        return false;
+    }
+
     private void paintTransformed(Node prev, Node cur, String edgename, Table nodes, Table edges,
             HashMap<Node, Integer> visitedNodes, HashMap<Node, List<Node>> visitedEdges) {
         // Exit recurse
@@ -6267,7 +6329,7 @@ public final class Pattern implements java.io.Serializable {
 
     /**
      * Traverse all node recursively to collect node information for painting
-     * 
+     *
      * @param prev         Previous node
      * @param cur          Current node
      * @param edgename     Edge name
