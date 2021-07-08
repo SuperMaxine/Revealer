@@ -31,7 +31,7 @@ public class Analyzer {
     ArrayList<ArrayList<Node>> branchInLoop;
     ArrayList<ArrayList<Node>> loopAfterLoop;
     ArrayList<ArrayList<Node>> diyPaths;
-    ArrayList<Set<Integer>> diyMatchs;
+    ArrayList<ArrayList<Set<Integer>>> diyMatchs;
     Set<Node> loopNodes;
 
     ArrayList<VulStructure> possibleVuls;
@@ -1338,29 +1338,37 @@ public class Analyzer {
         }
 
         for(ArrayList<Node> path : diyPaths){
+            ArrayList<Set<Integer>>tmp = new ArrayList<>();
             for(Node node : path){
                 if (pattern.isCharSet(node))
 //                    System.out.print(pattern.getFullMatchSet(node));
-                    diyMatchs.add(pattern.getFullMatchSet(node));
+                    tmp.add(pattern.getFullMatchSet(node));
                 else
 //                    System.out.print(pattern.getFullMatchList(node));
                     for(Integer i : pattern.getFullMatchList(node)){
-                        diyMatchs.add(new HashSet<Integer>(i));
+                        Set<Integer> t = new HashSet<Integer>();
+                        t.add(i);
+                        tmp.add(t);
+//                        System.out.print(i+"\t"+tmp+"\n");
                     }
             }
+            diyMatchs.add(tmp);
 //            System.out.print("\n");
         }
 
-        for(int i = 0; i < diyPaths.size() - 1; i++){
-            for(int j = i + 1; j < diyPaths.size(); j++){
+        System.out.print("here:\n");
+        for(int i = 0; i < diyMatchs.size() - 1; i++){
+            for(int j = i + 1; j < diyMatchs.size(); j++){
                 int tmp = -1;
-                if(diyPaths.get(i).size() < diyPaths.get(j).size())
-                    tmp = judgeTwo(diyPaths.get(i), diyPaths.get(j));
+                if(diyMatchs.get(i).size() < diyMatchs.get(j).size())
+//                    tmp = judgeTwoPath(diyPaths.get(i), diyPaths.get(j));
+                    tmp = judgeTwo(diyMatchs.get(i), diyMatchs.get(j));
                 else
-                    tmp = judgeTwo(diyPaths.get(j),diyPaths.get(i));
-                System.out.print(diyPaths.get(i));
-                System.out.print(diyPaths.get(j));
-                System.out.print(tmp);
+//                    tmp = judgeTwoPath(diyPaths.get(j),diyPaths.get(i));
+                    tmp = judgeTwo(diyMatchs.get(j),diyMatchs.get(i));
+                System.out.print(diyMatchs.get(i)+"\n");
+                System.out.print(diyMatchs.get(j)+"\n");
+                System.out.print(tmp+"\n\n");
             }
         }
 
@@ -1492,8 +1500,40 @@ public class Analyzer {
         return true;
     }
 
+    public int judgeTwo(ArrayList<Set<Integer>> path1, ArrayList<Set<Integer>> path2){
+        boolean front = true;
+        boolean back = true;
+        for (int i = 0; i < path1.size(); i++) {
+            Set<Integer> result = new HashSet<Integer>();
+            result.addAll(path1.get(i));
+            result.retainAll(path2.get(i));
+            if(result.size()==0){
+                front = false;
+                break;
+            }
+        }
+        int c = path2.size() - path1.size();
+        for (int i = path1.size()-1; i >= 0; i--) {
+            Set<Integer> result = new HashSet<Integer>();
+            result.addAll(path1.get(i));
+            result.retainAll(path2.get(i + c));
+            if (result.size()==0) {
+                back = false;
+                break;
+            }
+        }
+        if (front && back)
+            return 3;
+        else if (front)
+            return 1;
+        else if (back)
+            return 2;
+        else
+            return 0;
+    }
+
     // 输入两个节点，输出两者是否存在前缀包含、后缀包含、完全包含，默认path1短于path2
-    public int judgeTwo(ArrayList<Node> path1, ArrayList<Node> path2){
+    public int judgeTwoPath(ArrayList<Node> path1, ArrayList<Node> path2){
         int status;
         boolean front = true;
         boolean back = true;
@@ -1565,6 +1605,7 @@ public class Analyzer {
         branchInLoop = new ArrayList<ArrayList<Node>>();
         loopAfterLoop = new ArrayList<ArrayList<Node>>();
         diyPaths = new ArrayList<ArrayList<Node>>();
+        diyMatchs = new ArrayList<ArrayList<Set<Integer>>>();
 
         regex = pattern.pattern();
     }
