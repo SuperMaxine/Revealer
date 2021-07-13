@@ -3148,7 +3148,7 @@ public final class Pattern implements java.io.Serializable {
     /**
      * Abstract node class to match one character satisfying some boolean property.
      */
-    private static abstract class CharProperty extends Node {
+    static abstract class CharProperty extends Node {
         Set<Integer> charSet = new HashSet<Integer>();
         Integer defaultChar = 0;
         boolean except = false;
@@ -6018,6 +6018,149 @@ public final class Pattern implements java.io.Serializable {
             }
         }
         return result;
+    }
+
+//    public void getAllFullMatchSets(Node node, Node end, ArrayList<Set<Integer>> prevPath, int count, int LL){
+//        ArrayList<Set<Integer>> path = new ArrayList<Set<Integer>>(prevPath);
+//
+//        if(node == null)return;
+//        if(path.size() > LL) return;
+//        if(node == end){
+//            this.allMatchs
+//        }
+//    }
+
+    public ArrayList<ArrayList<Set<Integer>>> getAllFullMatchSets(Node node, ArrayList<Set<Integer>> prevPath, int count, int LL){
+        ArrayList<Set<Integer>> path = new ArrayList<Set<Integer>>(prevPath);
+        ArrayList<ArrayList<Set<Integer>>> paths = new ArrayList<ArrayList<Set<Integer>>>();
+        ArrayList<ArrayList<Set<Integer>>> result;
+
+        if(node == null){
+            paths.add(prevPath);
+            return paths;
+        }
+        if(path.size() > LL)return paths;
+
+        if(node instanceof Branch){
+            for(Node atom : node.atoms){
+                result = getAllFullMatchSets(atom, path, 0, LL);
+                if(result!=null)paths.addAll(result);
+            }
+        }else if(node instanceof Loop){
+            ArrayList<ArrayList<Set<Integer>>> tmp_paths = new ArrayList<ArrayList<Set<Integer>>>();
+            ArrayList<ArrayList<Set<Integer>>> tmp_paths2 = new ArrayList<ArrayList<Set<Integer>>>();
+            count++;
+            // 反复添加自己
+            if(((Loop)node).cmax == Integer.MAX_VALUE || ((Loop)node).cmax == 0) {
+                if (count < LL) {
+                    result = getAllFullMatchSets(node, path, count, LL);
+                    if (result != null) tmp_paths.addAll(result);
+                }
+            }
+            else
+                if (count < ((Loop) node).cmax) {
+                    result = getAllFullMatchSets(node, path, count, LL);
+                    if(result!=null)tmp_paths.addAll(result);
+                }
+
+            // 往下走，先走sub，然后走next
+            if(node.sub_next != null) {
+                if(tmp_paths.size()>0)
+                    for(ArrayList<Set<Integer>> p : tmp_paths) {
+                        result = getAllFullMatchSets(node.sub_next, p, 0, LL);
+                        if(result!=null)tmp_paths2.addAll(result);
+                    }
+                else {
+                    result = getAllFullMatchSets(node.sub_next, path, 0, LL);
+                    if (result!=null)tmp_paths2.addAll(result);
+                }
+            }
+            if(tmp_paths2.size()>0)
+                for(ArrayList<Set<Integer>> p : tmp_paths2) {
+                    result = getAllFullMatchSets(node.direct_next, p, 0, LL);
+                    if(result!=null)paths.addAll(result);
+                }
+            else {
+                result = getAllFullMatchSets(node.direct_next, path, 0, LL);
+                if (result!=null)paths.addAll(result);
+            }
+
+        }else if(node instanceof Curly){
+            ArrayList<ArrayList<Set<Integer>>> tmp_paths = new ArrayList<ArrayList<Set<Integer>>>();
+            ArrayList<ArrayList<Set<Integer>>> tmp_paths2 = new ArrayList<ArrayList<Set<Integer>>>();
+            count++;
+            // 反复添加自己
+            if(((Curly)node).cmax == Integer.MAX_VALUE || ((Curly)node).cmax == 0) {
+                if (count < LL) {
+                    result = getAllFullMatchSets(node, path, count, LL);
+                    if (result != null) tmp_paths.addAll(result);
+                }
+            }
+            else
+                if (count < ((Curly) node).cmax) {
+                    result = getAllFullMatchSets(node, path, count, LL);
+                    if(result!=null)tmp_paths.addAll(result);
+                }
+
+            // 往下走
+            if(node.sub_next != null) {
+                if(tmp_paths.size()>0)
+                    for(ArrayList<Set<Integer>> p : tmp_paths) {
+                        result = getAllFullMatchSets(node.sub_next, p, 0, LL);
+                        if(result!=null)tmp_paths2.addAll(result);
+                    }
+                else {
+                    result = getAllFullMatchSets(node.sub_next, path, 0, LL);
+                    if (result!=null)tmp_paths2.addAll(result);
+                }
+            }
+            if(tmp_paths2.size()>0)
+                for(ArrayList<Set<Integer>> p : tmp_paths2) {
+                    result = getAllFullMatchSets(node.direct_next, p, 0, LL);
+                    if(result!=null)paths.addAll(result);
+                }
+            else {
+                result = getAllFullMatchSets(node.direct_next, path, 0, LL);
+                if (result!=null)paths.addAll(result);
+            }
+        }
+        else if(node instanceof CharProperty || node instanceof SliceNode || node instanceof BnM){
+            // 添加自己
+            if(node instanceof CharProperty){
+                CharProperty charNode= (CharProperty) node;
+                path.add(charNode.getCharSet());
+            }else{
+                String str;
+                if(node instanceof SliceNode) str = ((SliceNode) node).getSliceBuffer();
+                else str = ((BnM) node).getSliceBuffer();
+//                if (str.length() == 0)
+//                    return paths;
+                assert str.length() > 0;
+                for(String retval : str.split("")){
+                    path.add(new HashSet<Integer>((int) retval.charAt(0)));
+                }
+            }
+
+            paths.add(path);
+
+        }else{
+            ArrayList<ArrayList<Set<Integer>>> tmp_paths = new ArrayList<ArrayList<Set<Integer>>>();
+            if(node.sub_next != null) {
+                result = getAllFullMatchSets(node.sub_next, path, 0, LL);
+                if(result!=null)tmp_paths.addAll(result);
+            }
+            if(tmp_paths.size()>0)
+                for(ArrayList<Set<Integer>> p : tmp_paths) {
+                    result = getAllFullMatchSets(node.direct_next, p, 0, LL);
+                    if (result!=null)paths.addAll(result);
+                }
+            else {
+                result = getAllFullMatchSets(node.direct_next, path, 0, LL);
+                if (result!=null)paths.addAll(result);
+            }
+        }
+
+        return paths;
     }
 
     public Set<Integer> getFullMatchSet(Node node) {

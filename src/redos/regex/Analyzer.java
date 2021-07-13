@@ -32,6 +32,7 @@ public class Analyzer {
     ArrayList<ArrayList<Node>> loopAfterLoop;
     ArrayList<ArrayList<Node>> diyPaths;
     ArrayList<ArrayList<Set<Integer>>> diyMatchs;
+    ArrayList<ArrayList<ArrayList<Set<Integer>>>> allMatchs;
     Set<Node> loopNodes;
 
     ArrayList<VulStructure> possibleVuls;
@@ -1329,47 +1330,54 @@ public class Analyzer {
             }
         }
 
-        // 将所有Loop节点的路径存入diyPath
+//        // 将所有Loop节点的路径存入diyPath
+//        for (Node node : loopNodes) {
+//            ArrayList<Node> tmp = new ArrayList<Node>();
+//            tmp.addAll(getPath(node.sub_next, new ArrayList<Node>()));
+//            diyPaths.add(tmp);
+//            System.out.print(tmp+"\n");
+//        }
+//
+//        for(ArrayList<Node> path : diyPaths){
+//            ArrayList<Set<Integer>>tmp = new ArrayList<>();
+//            for(Node node : path){
+//                if (pattern.isCharSet(node))
+////                    System.out.print(pattern.getFullMatchSet(node));
+//                    tmp.add(pattern.getFullMatchSet(node));
+//                else
+////                    System.out.print(pattern.getFullMatchList(node));
+//                    for(Integer i : pattern.getFullMatchList(node)){
+//                        Set<Integer> t = new HashSet<Integer>();
+//                        t.add(i);
+//                        tmp.add(t);
+////                        System.out.print(i+"\t"+tmp+"\n");
+//                    }
+//            }
+//            diyMatchs.add(tmp);
+////            System.out.print("\n");
+//        }
+//
+//        System.out.print("here:\n");
+//        for(int i = 0; i < diyMatchs.size() - 1; i++){
+//            for(int j = i + 1; j < diyMatchs.size(); j++){
+//                int tmp = -1;
+//                if(diyMatchs.get(i).size() < diyMatchs.get(j).size())
+////                    tmp = judgeTwoPath(diyPaths.get(i), diyPaths.get(j));
+//                    tmp = judgeTwo(diyMatchs.get(i), diyMatchs.get(j));
+//                else
+////                    tmp = judgeTwoPath(diyPaths.get(j),diyPaths.get(i));
+//                    tmp = judgeTwo(diyMatchs.get(j),diyMatchs.get(i));
+//                System.out.print(diyMatchs.get(i)+"\n");
+//                System.out.print(diyMatchs.get(j)+"\n");
+//                System.out.print(tmp+"\n\n");
+//            }
+//        }
+
+        int i = 0;
         for (Node node : loopNodes) {
-            ArrayList<Node> tmp = new ArrayList<Node>();
-            tmp.addAll(getPath(node.sub_next, new ArrayList<Node>()));
-            diyPaths.add(tmp);
-            System.out.print(tmp+"\n");
-        }
-
-        for(ArrayList<Node> path : diyPaths){
-            ArrayList<Set<Integer>>tmp = new ArrayList<>();
-            for(Node node : path){
-                if (pattern.isCharSet(node))
-//                    System.out.print(pattern.getFullMatchSet(node));
-                    tmp.add(pattern.getFullMatchSet(node));
-                else
-//                    System.out.print(pattern.getFullMatchList(node));
-                    for(Integer i : pattern.getFullMatchList(node)){
-                        Set<Integer> t = new HashSet<Integer>();
-                        t.add(i);
-                        tmp.add(t);
-//                        System.out.print(i+"\t"+tmp+"\n");
-                    }
-            }
-            diyMatchs.add(tmp);
-//            System.out.print("\n");
-        }
-
-        System.out.print("here:\n");
-        for(int i = 0; i < diyMatchs.size() - 1; i++){
-            for(int j = i + 1; j < diyMatchs.size(); j++){
-                int tmp = -1;
-                if(diyMatchs.get(i).size() < diyMatchs.get(j).size())
-//                    tmp = judgeTwoPath(diyPaths.get(i), diyPaths.get(j));
-                    tmp = judgeTwo(diyMatchs.get(i), diyMatchs.get(j));
-                else
-//                    tmp = judgeTwoPath(diyPaths.get(j),diyPaths.get(i));
-                    tmp = judgeTwo(diyMatchs.get(j),diyMatchs.get(i));
-                System.out.print(diyMatchs.get(i)+"\n");
-                System.out.print(diyMatchs.get(j)+"\n");
-                System.out.print(tmp+"\n\n");
-            }
+//            allMatchs.add(getAllFullMatchSets(i, node, node.direct_next, new ArrayList<Set<Integer>>(), 0, 4));
+            allMatchs.add(getAllMatchSets(node, node.direct_next, new ArrayList<>(), 5));
+            i++;
         }
 
         for (Node node : loopNodes) {
@@ -1560,6 +1568,207 @@ public class Analyzer {
             return 0;
     }
 
+    public ArrayList<ArrayList<Set<Integer>>> getAllMatchSets(Node node, Node end, ArrayList<Set<Integer>>prevPath, int LL){
+        ArrayList<ArrayList<Set<Integer>>> paths = new ArrayList<ArrayList<Set<Integer>>>();
+//        ArrayList<ArrayList<Set<Integer>>> fullPaths = new ArrayList<ArrayList<Set<Integer>>>();
+        if(node instanceof Pattern.CharProperty|| node instanceof Pattern.SliceNode || node instanceof Pattern.BnM){
+            ArrayList<Set<Integer>> path = new ArrayList<Set<Integer>>();
+            if(pattern.isCharSet(node)){
+                Pattern.CharProperty charNode= (Pattern.CharProperty) node;
+                path.add(charNode.getCharSet());
+            }else {
+                String str;
+                if(node instanceof Pattern.SliceNode) str = ((Pattern.SliceNode) node).getSliceBuffer();
+                else str = ((Pattern.BnM) node).getSliceBuffer();
+//                if (str.length() == 0)
+//                    return paths;
+                assert str.length() > 0;
+                for(String retval : str.split("")){
+                    path.add(new HashSet<Integer>((int) retval.charAt(0)));
+                }
+            }
+            paths.add(path);
+        }
+        else if(node instanceof Branch){
+            for(Node atom : node.atoms){
+                paths.addAll(getAllMatchSets(atom,end, new ArrayList<Set<Integer>>(), LL));
+            }
+        }else if(node instanceof Pattern.Loop){
+            ArrayList<ArrayList<Set<Integer>>> tmp_paths = new ArrayList<ArrayList<Set<Integer>>>();
+            tmp_paths = getAllMatchSets(node.sub_next, end, new ArrayList<Set<Integer>>(), LL);
+            for(ArrayList<Set<Integer>> path : tmp_paths){
+                while(path.size()<((Pattern.Loop)node).cmin)path.addAll(path);
+                ArrayList<Set<Integer>> tmp_path = new ArrayList<>(path);
+                if(((Pattern.Loop)node).cmax == Integer.MAX_VALUE || ((Pattern.Loop)node).cmax == 0){
+                    while(tmp_path.size() < LL){
+                        paths.add(new ArrayList<>(tmp_path));
+                        tmp_path.addAll(path);
+                    }
+                }else{
+                    while(tmp_path.size() < ((Pattern.Loop)node).cmax){
+                        paths.add(new ArrayList<>(tmp_path));
+                        tmp_path.addAll(path);
+                    }
+                }
+            }
+            if(((Pattern.Loop)node).cmin==0)paths.add(new ArrayList<>());
+        }else if(node instanceof Pattern.Curly){
+            ArrayList<ArrayList<Set<Integer>>> tmp_paths = new ArrayList<ArrayList<Set<Integer>>>();
+            tmp_paths = getAllMatchSets(node.sub_next, end, new ArrayList<Set<Integer>>(), LL);
+            for(ArrayList<Set<Integer>> path : tmp_paths){
+                while(path.size()<((Pattern.Curly)node).cmin)path.addAll(path);
+                ArrayList<Set<Integer>> tmp_path = new ArrayList<>(path);
+                if(((Pattern.Curly)node).cmax == Integer.MAX_VALUE || ((Pattern.Curly)node).cmax == 0){
+                    while(tmp_path.size() < LL){
+                        paths.add(new ArrayList<>(tmp_path));
+                        tmp_path.addAll(path);
+                    }
+                }else{
+                    while(tmp_path.size() < ((Pattern.Curly)node).cmax){
+                        paths.add(new ArrayList<>(tmp_path));
+                        tmp_path.addAll(path);
+                    }
+                }
+            }
+            if(((Pattern.Curly)node).cmin==0)paths.add(new ArrayList<>());
+        }
+
+        if (node.direct_next == end){
+            return paths;
+        }
+
+        ArrayList<ArrayList<Set<Integer>>> new_paths = new ArrayList<ArrayList<Set<Integer>>>();
+
+        if(paths.size()>0)
+        for(ArrayList<Set<Integer>> path : paths){
+            if (path.size()+prevPath.size()>LL)continue;
+            else{
+                ArrayList<Set<Integer>> tmp_path = new ArrayList<>(prevPath);
+                tmp_path.addAll(path);
+
+                if(node.direct_next!=null)
+                    new_paths.addAll(getAllMatchSets(node.direct_next, end, tmp_path, LL));
+                else new_paths.add(tmp_path);
+            }
+        }
+        else if(node.direct_next!=null)
+            new_paths = getAllMatchSets(node.direct_next, end, prevPath, LL);
+        else{
+            new_paths.add(prevPath);
+            return new_paths;
+        }
+
+
+        return new_paths;
+    }
+
+    public ArrayList<ArrayList<Set<Integer>>> getAllFullMatchSets(int i, Node node, Node end, ArrayList<Set<Integer>> prevPath, int count, int LL){
+        ArrayList<Set<Integer>> path = new ArrayList<Set<Integer>>();
+        ArrayList<ArrayList<Set<Integer>>> paths = new ArrayList<ArrayList<Set<Integer>>>();
+        ArrayList<ArrayList<Set<Integer>>> result = null;
+
+        if(path.size() > LL) return null;
+
+        if(node instanceof Branch){
+            for(Node atom : node.atoms){
+                result = getAllFullMatchSets(i, atom, end, path, 0, LL);
+                if(result!=null&&result.size()>0)paths.addAll(result);
+            }
+        }else if(node instanceof Pattern.Loop){
+            count++;
+            // 反复添加自己
+            result = getAllFullMatchSets(i, node, end, path, count, LL);
+            if(result!=null&&result.size()>0)paths.addAll(result);
+//
+//            for(ArrayList<Set<Integer>>r : result){
+//
+//            }
+            if(((Pattern.Loop)node).cmax == Integer.MAX_VALUE || ((Pattern.Loop)node).cmax == 0) {
+                    result = getAllFullMatchSets(i, node, end, path, count, LL);
+                    if(result!=null&&result.size()>0)paths.addAll(result);
+            }else if (count < ((Pattern.Loop) node).cmax)  {
+                result = getAllFullMatchSets(i, node, end, path, count, LL);
+                if(result!=null&&result.size()>0)paths.addAll(result);
+            }
+
+            // 不添加自己，直接添加下一个
+            if(path.size()>0)paths.add(path);
+        }else if(node instanceof Pattern.Curly){
+            count++;
+            // 反复添加自己
+            if(((Pattern.Curly)node).cmax == Integer.MAX_VALUE || ((Pattern.Curly)node).cmax == 0) {
+                if (count < LL) {
+                    result = getAllFullMatchSets(i, node, end, path, count, LL);
+                    if(result!=null&&result.size()>0)paths.addAll(result);
+                }
+            }else if (count < ((Pattern.Curly) node).cmax)  {
+                result = getAllFullMatchSets(i, node, end, path, count, LL);
+                if(result!=null&&result.size()>0)paths.addAll(result);
+            }
+
+            // 不添加自己，直接添加下一个
+            if(path.size()>0)paths.add(path);
+        }else if(pattern.isCharSet(node) || node instanceof Pattern.SliceNode || node instanceof Pattern.BnM) {
+            if(pattern.isCharSet(node)){
+                Pattern.CharProperty charNode= (Pattern.CharProperty) node;
+                path.add(charNode.getCharSet());
+            }else {
+                String str;
+                if(node instanceof Pattern.SliceNode) str = ((Pattern.SliceNode) node).getSliceBuffer();
+                else str = ((Pattern.BnM) node).getSliceBuffer();
+//                if (str.length() == 0)
+//                    return paths;
+                assert str.length() > 0;
+                for(String retval : str.split("")){
+                    path.add(new HashSet<Integer>((int) retval.charAt(0)));
+                }
+            }
+            paths.add(path);
+        }
+
+
+        ArrayList<ArrayList<Set<Integer>>> new_paths = new ArrayList<ArrayList<Set<Integer>>>();
+        if(node.sub_next != null) {
+            ArrayList<ArrayList<Set<Integer>>> sub_paths = new ArrayList<ArrayList<Set<Integer>>>();
+            if(paths.size()>0) {
+                for (ArrayList<Set<Integer>> p : paths) {
+                    result = getAllFullMatchSets(i, node.sub_next, end, p, 0, LL);
+                    if (result != null && result.size() > 0) sub_paths.addAll(result);
+                }
+            }
+            else {
+                result = getAllFullMatchSets(i, node.sub_next, end, path, 0, LL);
+                if (result != null && result.size() > 0) sub_paths.addAll(result);
+            }
+            if(sub_paths.size()>0){
+                for(ArrayList<Set<Integer>>p:sub_paths){
+                    result = getAllFullMatchSets(i, node.direct_next, end, p, 0, LL);
+                    if(result!=null&&result.size()>0)new_paths.addAll(result);
+                }
+            }else{
+                result = getAllFullMatchSets(i, node.direct_next, end, path, 0, LL);
+                if(result!=null&&result.size()>0)new_paths.addAll(result);
+            }
+
+        }else if(node.direct_next != null){
+            if(paths.size()>0)
+                for(ArrayList<Set<Integer>>p:paths){
+                    result = getAllFullMatchSets(i, node.direct_next, end, p, 0, LL);
+                    if(result!=null&&result.size()>0)new_paths.addAll(result);
+                }
+            else {
+                result = getAllFullMatchSets(i, node.direct_next, end, path, 0, LL);
+                if (result != null && result.size() > 0) new_paths.addAll(result);
+            }
+        }else{
+            if(paths.size()==0)
+                paths.add(path);
+                return paths;
+        }
+
+        return new_paths;
+    }
+
     private void getPathFromLoop(Node node, ArrayList<Node> prev_path, boolean direct) {
         if (node == null)
             return;
@@ -1606,6 +1815,7 @@ public class Analyzer {
         loopAfterLoop = new ArrayList<ArrayList<Node>>();
         diyPaths = new ArrayList<ArrayList<Node>>();
         diyMatchs = new ArrayList<ArrayList<Set<Integer>>>();
+        allMatchs = new ArrayList<ArrayList<ArrayList<Set<Integer>>>>();
 
         regex = pattern.pattern();
     }

@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import com.alibaba.fastjson.JSONObject;
@@ -131,10 +132,14 @@ public class RedosTester {
 	public static void main(String[] args) throws Exception {
 		if (args.length == 1)
 //			RedosTester.testSingleRegex(args[0]);
-			RedosTester.testSingleRegex("^(((a*a*)c)d){3,}$");
+			RedosTester.testSingleRegex("^(((a+|b+)c)d)+$");
 //			RedosTester.testSingleRegex("^(.|[^\"])*\"");
 //			RedosTester.testSingleRegex("[adgjl]*[a-z1-9][A-Z]");
 //			RedosTester.testSingleRegex("(abc)*[a-z]*");
+//			RedosTester.testSingleRegex("((a*b)|(c*d)|(e*f*))*");
+
+//			Test Len
+//			RedosTester.testSingleRegex("m(?=a)n(?!b)x(?<=c)y(?<!d)z");
 		else if (args.length == 2)
 			RedosTester.vulValidation(args[0], args[1]);
 		else
