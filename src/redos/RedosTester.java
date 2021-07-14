@@ -132,7 +132,8 @@ public class RedosTester {
 	public static void main(String[] args) throws Exception {
 		if (args.length == 1)
 //			RedosTester.testSingleRegex(args[0]);
-			RedosTester.testSingleRegex("^(((a+|b+)c)d)+$");
+			RedosTester.testSingleRegex("^(((.*b*)c)d)+$");
+//			RedosTester.testSingleRegex(".[a-zA-Z]");
 //			RedosTester.testSingleRegex("^(.|[^\"])*\"");
 //			RedosTester.testSingleRegex("[adgjl]*[a-z1-9][A-Z]");
 //			RedosTester.testSingleRegex("(abc)*[a-z]*");

@@ -1373,11 +1373,10 @@ public class Analyzer {
 //            }
 //        }
 
-        int i = 0;
+        // 将所有循环节点能够到达的路径放入allMatchs
         for (Node node : loopNodes) {
 //            allMatchs.add(getAllFullMatchSets(i, node, node.direct_next, new ArrayList<Set<Integer>>(), 0, 4));
             allMatchs.add(getAllMatchSets(node, node.direct_next, new ArrayList<>(), 5));
-            i++;
         }
 
         for (Node node : loopNodes) {
@@ -1568,6 +1567,129 @@ public class Analyzer {
             return 0;
     }
 
+    private class overlap {
+        int type;
+        ArrayList<Set<Integer>> bigOne;
+        ArrayList<Set<Integer>> smallOne;
+        ArrayList<Set<Integer>> preffix;
+        ArrayList<Set<Integer>> suffix;
+        public overlap(){
+            type = 0;
+            bigOne = new ArrayList<Set<Integer>>();
+            smallOne = new ArrayList<Set<Integer>>();
+            preffix = new ArrayList<Set<Integer>>();
+            suffix = new ArrayList<Set<Integer>>();
+        }
+
+//        public boolean isPreffixOverlap(){
+//            if(preffix.size()>0)return true;
+//            return false;
+//        }
+//
+//        public boolean isSuffixOverlap(){
+//            if(suffix.size()>0)return true;
+//            return false;
+//        }
+//
+//        public boolean isCompleteOverlap(){
+//            if (preffix.size()==suffix.size() && bigOne.size()==smallOne.size() && preffix.size() == bigOne.size()){
+//                return true;
+//            }
+//            return false;
+//        }
+    }
+
+    public overlap checkOverlap(ArrayList<Set<Integer>> path1, ArrayList<Set<Integer>> path2){
+//        for(ArrayList<ArrayList<Set<Integer>>> path : allMatchs)
+//            // 对每个loopNode所导出的所有路径，两两之间进行比较
+//            for(int i = 0; i < path.size() - 1; i++){
+//                for(int j = i + 1; j < path.size(); j++){
+//                    for (int k = 0; k < path.get(i).size()&&k < path.get(j).size();k++) {
+//                        // 比较两个路径每个节点的重合
+//                        // 如果两个Set都为空，则新建Set为空
+//                        // 如果一个Set为空，另一个不为空，则新建Set为不空Set
+//                        // 如果两个都不为空，先判断有没有交集，无交集则修改flag并退出，有交集则
+//                    }
+//                }
+//            }
+
+        overlap ans = new overlap();
+
+
+        int n;
+        if (path1.size()>path2.size()){
+            n = path2.size();
+            ans.bigOne = path1;
+            ans.smallOne = path2;
+        }else{
+            n = path1.size();
+            ans.bigOne = path2;
+            ans.smallOne = path1;
+        }
+
+        int flag = 0;
+        for(int i = 0; i < n; i++){
+            // 比较两个路径每个节点的重合
+            // 如果两个Set都为空，则新建Set为空
+            // 如果一个Set为空，另一个不为空，则新建Set为不空Set
+            // 如果两个都不为空，先判断有没有交集，无交集则修改flag并退出，有交集则
+            Set<Integer> tmp;
+            if(path1.get(i).size()==0 && path2.get(i).size()==0){
+                tmp = new HashSet<>();
+            }else if(path1.get(i).size()==0){
+                tmp = new HashSet<>(path2.get(i));
+            }else if (path2.get(i).size()==0){
+                tmp = new HashSet<>(path1.get(i));
+            }else{
+                tmp = new HashSet<>(path1.get(i));
+                tmp.retainAll(path2.get(i));
+                if(tmp.size()==0) {
+                    flag=1;
+                    break;
+                }
+            }
+            ans.preffix.add(tmp);
+        }
+
+        if (flag==0)ans.type=1;
+
+        flag = 0;
+        for(int i = n-1; i >= 0; i--){
+            // 比较两个路径每个节点的重合
+            // 如果两个Set都为空，则新建Set为空
+            // 如果一个Set为空，另一个不为空，则新建Set为不空Set
+            // 如果两个都不为空，先判断有没有交集，无交集则修改flag并退出，有交集则
+            Set<Integer> tmp;
+            if(path1.get(i).size()==0 && path2.get(i).size()==0){
+                tmp = new HashSet<>();
+            }else if(path1.get(i).size()==0){
+                tmp = new HashSet<>(path2.get(i));
+            }else if (path2.get(i).size()==0){
+                tmp = new HashSet<>(path1.get(i));
+            }else{
+                tmp = new HashSet<>(path1.get(i));
+                tmp.retainAll(path2.get(i));
+                if(tmp.size()==0) {
+                    flag = 1;
+                    break;
+                }
+            }
+            ans.suffix.add(0, tmp);
+        }
+
+        if (flag==0){
+            if(ans.type==1)ans.type=3;
+            else ans.type=2;
+        }
+
+        // 完全无交集返回null
+        // 前缀返回集合
+        // 后缀返回集合
+        // 完全重合集合
+        // 问题：是否在乎重合种类，以及要不要记录是哪两条路径重合
+        return ans;
+    }
+
     public ArrayList<ArrayList<Set<Integer>>> getAllMatchSets(Node node, Node end, ArrayList<Set<Integer>>prevPath, int LL){
         ArrayList<ArrayList<Set<Integer>>> paths = new ArrayList<ArrayList<Set<Integer>>>();
 //        ArrayList<ArrayList<Set<Integer>>> fullPaths = new ArrayList<ArrayList<Set<Integer>>>();
@@ -1576,6 +1698,7 @@ public class Analyzer {
             if(pattern.isCharSet(node)){
                 Pattern.CharProperty charNode= (Pattern.CharProperty) node;
                 path.add(charNode.getCharSet());
+                // Dot的Set是空
             }else {
                 String str;
                 if(node instanceof Pattern.SliceNode) str = ((Pattern.SliceNode) node).getSliceBuffer();
@@ -1640,17 +1763,17 @@ public class Analyzer {
         ArrayList<ArrayList<Set<Integer>>> new_paths = new ArrayList<ArrayList<Set<Integer>>>();
 
         if(paths.size()>0)
-        for(ArrayList<Set<Integer>> path : paths){
-            if (path.size()+prevPath.size()>LL)continue;
-            else{
-                ArrayList<Set<Integer>> tmp_path = new ArrayList<>(prevPath);
-                tmp_path.addAll(path);
+            for(ArrayList<Set<Integer>> path : paths){
+                if (path.size()+prevPath.size()>LL)continue;
+                else{
+                    ArrayList<Set<Integer>> tmp_path = new ArrayList<>(prevPath);
+                    tmp_path.addAll(path);
 
-                if(node.direct_next!=null)
-                    new_paths.addAll(getAllMatchSets(node.direct_next, end, tmp_path, LL));
-                else new_paths.add(tmp_path);
+                    if(node.direct_next!=null)
+                        new_paths.addAll(getAllMatchSets(node.direct_next, end, tmp_path, LL));
+                    else new_paths.add(tmp_path);
+                }
             }
-        }
         else if(node.direct_next!=null)
             new_paths = getAllMatchSets(node.direct_next, end, prevPath, LL);
         else{
