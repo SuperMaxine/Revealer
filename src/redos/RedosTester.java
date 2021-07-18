@@ -129,15 +129,44 @@ public class RedosTester {
 		System.out.print("finished\n");
 	}
 
+	public static void testSingleRegexDIY(String regex) throws Exception {
+		int max_length = 128;
+		double threshold = 1e5;
+		BufferedWriter log = new BufferedWriter(new OutputStreamWriter(System.out));
+		Pattern p = Pattern.compile(regex);
+		Analyzer redosAnalyzer = new Analyzer(p, max_length);
+		// TODO: 解决.* √
+		redosAnalyzer.doStaticAnalysisDIY();
+		// TODO: 根据路径生成待匹配的字符串
+		// TODO: 检测lookaround，如果不符合则重新生成（具体影响暂定）
+		// 1. 生成lookaround节点的Set串
+		// 2. 与Set路径的前几个取交集
+		/* TODO: match匹配
+		try {
+			Pattern p = Pattern.compile(regex);
+			Matcher m = p.matcher(attack_string, new Trace(threshold, false));
+			Trace t = m.find();
+
+			System.out.print(t.getMatchSteps() + "\n");
+			if (t.getMatchSteps() > 1e5) {
+				outVul.write(regex + "\n");
+			}
+		} catch (Exception e) {
+			System.out.print("0\n");
+		}*/
+	}
+
 	public static void main(String[] args) throws Exception {
 		if (args.length == 1)
 //			RedosTester.testSingleRegex(args[0]);
-			RedosTester.testSingleRegex("^(((.*b*)c)d)+$");
+//			RedosTester.testSingleRegex("^(((a*a*)c)\\d)+$");
 //			RedosTester.testSingleRegex(".[a-zA-Z]");
 //			RedosTester.testSingleRegex("^(.|[^\"])*\"");
 //			RedosTester.testSingleRegex("[adgjl]*[a-z1-9][A-Z]");
 //			RedosTester.testSingleRegex("(abc)*[a-z]*");
 //			RedosTester.testSingleRegex("((a*b)|(c*d)|(e*f*))*");
+
+			RedosTester.testSingleRegexDIY("^(((a*a*)c)\\d)+$");
 
 //			Test Len
 //			RedosTester.testSingleRegex("m(?=a)n(?!b)x(?<=c)y(?<!d)z");
