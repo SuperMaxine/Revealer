@@ -141,19 +141,27 @@ public class RedosTester {
 		// TODO: 检测lookaround，如果不符合则重新生成（具体影响暂定）
 		// 1. 生成lookaround节点的Set串
 		// 2. 与Set路径的前几个取交集
-		/* TODO: match匹配
-		try {
-			Pattern p = Pattern.compile(regex);
-			Matcher m = p.matcher(attack_string, new Trace(threshold, false));
-			Trace t = m.find();
-
-			System.out.print(t.getMatchSteps() + "\n");
-			if (t.getMatchSteps() > 1e5) {
-				outVul.write(regex + "\n");
+		// TODO: match匹配
+		for(Analyzer.VulStructure vul : redosAnalyzer.possibleVuls) {
+			StringBuffer attack_string=new StringBuffer(vul.prefix);
+			for(int i = 0; i < 1000; i++){
+				attack_string.append(vul.pump);
 			}
-		} catch (Exception e) {
-			System.out.print("0\n");
-		}*/
+			attack_string.append(vul.suffix);
+			try {
+//				Pattern p = Pattern.compile(regex);
+				Matcher m = p.matcher(attack_string.toString(), new Trace(threshold, false));
+				Trace t = m.find();
+
+				System.out.print(t.getMatchSteps() + "\n");
+				if (t.getMatchSteps() > 1e5) {
+//					outVul.write(regex + "\n");
+					System.out.print(regex + "\n");
+				}
+			} catch (Exception e) {
+				System.out.print("0\n");
+			}
+		}
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -166,7 +174,7 @@ public class RedosTester {
 //			RedosTester.testSingleRegex("(abc)*[a-z]*");
 //			RedosTester.testSingleRegex("((a*b)|(c*d)|(e*f*))*");
 
-			RedosTester.testSingleRegexDIY("^(((a*a*)c)\\d)+$");
+			RedosTester.testSingleRegexDIY("^123(((a*a*)c)\\d)+456$");
 
 //			Test Len
 //			RedosTester.testSingleRegex("m(?=a)n(?!b)x(?<=c)y(?<!d)z");

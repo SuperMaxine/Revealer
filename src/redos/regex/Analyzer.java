@@ -36,14 +36,14 @@ public class Analyzer {
     ArrayList<ArrayList<overlap>> overlaps;
     Set<Node> loopNodes;
 
-    ArrayList<VulStructure> possibleVuls;
+    public ArrayList<VulStructure> possibleVuls;
 
     String regex;
 
-    private class VulStructure {
-        StringBuffer prefix;
-        StringBuffer pump;
-        StringBuffer suffix;
+    public class VulStructure {
+        public StringBuffer prefix;
+        public StringBuffer pump;
+        public StringBuffer suffix;
         Driver suffixDriver = null;
         ArrayList<ArrayList<Node>> pathSharing;
         ArrayList<Node> fullPath;
@@ -673,11 +673,22 @@ public class Analyzer {
             }
         }
 
-        public VulStructure(Node LoopNode, VulType vulType) {
+        public VulStructure(Node LoopNode, ArrayList<ArrayList<Set<Integer>>> paths) {
+            initialize();
             path_start = LoopNode;
             suffixHead = path_start.direct_next;
-            getPrefix();
-            getSuffix();
+            prefix=new StringBuffer(getPrefix());
+            suffix=new StringBuffer(getSuffix());
+            pump=new StringBuffer();
+            for(ArrayList<Set<Integer>> path : paths){
+                for (Set<Integer> s : path){
+                    for(int c : s){
+                        pump.append((char) c);
+                        break;
+                    }
+                }
+                break;
+            }
         }
 
         public VulStructure(ArrayList<Node> sourcePath, VulType vulType) {
@@ -1312,6 +1323,9 @@ public class Analyzer {
             ArrayList<ArrayList<Set<Integer>>> tmp = getAllMatchSets(node, node.direct_next, new ArrayList<>(), 4);
             tmp.removeIf(t -> t.size() == 0);
             allMatchs.add(tmp);
+            VulStructure vul = new VulStructure(node, tmp);
+            possibleVuls = new ArrayList<VulStructure>();
+            possibleVuls.add(vul);
         }
 
         for (ArrayList<ArrayList<Set<Integer>>> paths : allMatchs) {
