@@ -192,19 +192,21 @@ public class RedosTester {
         // TODO: match匹配
 //		System.out.print("\nA vul:\n"+regex+"\n");
         for (Analyzer.VulStructure vul : redosAnalyzer.possibleVuls) {
-            StringBuffer attack_string = new StringBuffer(vul.prefix);
-            for (int i = 0; i < 100; i++) {
-                attack_string.append(vul.pump);
-            }
-            attack_string.append(vul.suffix);
+//            StringBuffer attack_string = new StringBuffer(vul.prefix);
+//            for (int i = 0; i < 100; i++) {
+//                attack_string.append(vul.pump);
+//            }
+//            attack_string.append(vul.suffix);
 //			System.out.print(attack_string+"\n");
             try {
 //				Pattern p = Pattern.compile(regex);
-                Matcher m = p.matcher(attack_string.toString(), new Trace(threshold, false));
-                Trace t = m.find();
+//                Matcher m = p.matcher(attack_string.toString(), new Trace(threshold, false));
+//                Trace t = m.find();
+
 
 //				System.out.print(t.getMatchSteps() + "\n");
-                if (t.getMatchSteps() > 1e5) {
+//                if (t.getMatchSteps() > 1e5) {
+                if(redosAnalyzer.checkResult(vul.prefix.toString(), vul.pump.toString(), vul.suffix.toString(), 1000, threshold)){
 //                    outVul.write(regex + "\n");
 //                    outVul.write("Can be attacked");
                     System.out.println("Can be attacked");
