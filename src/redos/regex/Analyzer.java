@@ -673,21 +673,18 @@ public class Analyzer {
             }
         }
 
-        public VulStructure(Node LoopNode, ArrayList<ArrayList<Set<Integer>>> paths) {
+        public VulStructure(Node LoopNode, ArrayList<Set<Integer>> path) {
             initialize();
             path_start = LoopNode;
             suffixHead = path_start.direct_next;
-            prefix=new StringBuffer(getPrefix());
-            suffix=new StringBuffer(getSuffix());
-            pump=new StringBuffer();
-            for(ArrayList<Set<Integer>> path : paths){
-                for (Set<Integer> s : path){
-                    for(int c : s){
-                        pump.append((char) c);
-                        break;
-                    }
+            prefix = new StringBuffer(getPrefix());
+            suffix = new StringBuffer(getSuffix());
+            pump = new StringBuffer();
+            for (Set<Integer> s : path) {
+                for (int c : s) {
+                    pump.append((char) c);
+                    break;
                 }
-                break;
             }
         }
 
@@ -727,9 +724,9 @@ public class Analyzer {
         private String getPrefix() {
             ArrayList<Node> prefixPath = new ArrayList<Node>();
             Node p;
-            if(type!=VulType.DIY) {
+            if (type != VulType.DIY) {
                 p = path_start.direct_prev;
-            }else{
+            } else {
                 p = path_start;
             }
             if (p.self == "|")
@@ -1092,7 +1089,7 @@ public class Analyzer {
                 suffixDriver = new Driver(newEngine);
                 suffix = suffixDriver.getShortestFailedMatch();
             } catch (Exception e) {
-                System.out.print(regex + "\n");
+//                System.out.print(regex + "\n");
                 e.printStackTrace();
             }
             return suffix;
@@ -1318,27 +1315,46 @@ public class Analyzer {
     }
 
     public void doStaticAnalysisDIY() {
+        possibleVuls = new ArrayList<VulStructure>();
         // 将所有循环节点能够到达的路径放入allMatchs
         for (Node node : loopNodes) {
             ArrayList<ArrayList<Set<Integer>>> tmp = getAllMatchSets(node, node.direct_next, new ArrayList<>(), 4);
             tmp.removeIf(t -> t.size() == 0);
             allMatchs.add(tmp);
-            VulStructure vul = new VulStructure(node, tmp);
-            possibleVuls = new ArrayList<VulStructure>();
-            possibleVuls.add(vul);
-        }
+//            VulStructure vul = new VulStructure(node, tmp);
+//            possibleVuls.add(vul);
 
-        for (ArrayList<ArrayList<Set<Integer>>> paths : allMatchs) {
-            // 对每个loopNode所导出的所有路径，两两之间进行比较
-            ArrayList<overlap> tmp = new ArrayList<>();
-            for (int i = 0; i < paths.size() - 1; i++) {
-                for (int j = i + 1; j < paths.size(); j++) {
-                    overlap o = checkOverlap(paths.get(i), paths.get(j));
-                    if (o.type != 0) tmp.add(o);
+
+            Set<ArrayList<Set<Integer>>> possiblePath = new HashSet<>();
+
+            for (int i = 0; i < tmp.size() - 1; i++) {
+                for (int j = i + 1; j < tmp.size(); j++) {
+                    overlap o = checkOverlap(tmp.get(i), tmp.get(j));
+                    if (o.type != 0 && !possiblePath.contains(o.bigOne)) {
+                        possiblePath.add(o.bigOne);
+                    }
                 }
             }
-            if (tmp.size() > 0) overlaps.add(tmp);
+
+            for (ArrayList<Set<Integer>> p : possiblePath) {
+                VulStructure vul = new VulStructure(node, p);
+                possibleVuls.add(vul);
+            }
         }
+
+//        for (ArrayList<ArrayList<Set<Integer>>> paths : allMatchs) {
+//            // 对每个loopNode所导出的所有路径，两两之间进行比较
+//            ArrayList<overlap> tmp = new ArrayList<>();
+//            for (int i = 0; i < paths.size() - 1; i++) {
+//                for (int j = i + 1; j < paths.size(); j++) {
+//                    overlap o = checkOverlap(paths.get(i), paths.get(j));
+//                    if (o.type != 0) tmp.add(o);
+//                }
+//            }
+//            if (tmp.size() > 0) {
+//                overlaps.add(tmp);
+//            }
+//        }
 
     }
 
