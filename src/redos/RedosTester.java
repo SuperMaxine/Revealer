@@ -110,26 +110,32 @@ public class RedosTester {
                 int cnt = 0;
                 while ((regex = bufferedReader.readLine()) != null) {
                     System.out.println(regex);
-//                    Thread method = new Thread(new ThreadMethod(regex, outVul));
-                    Thread method = new Thread(new ThreadMethod(regex));
-                    //调用方法
-                    method.start();
-                    try {
-                        method.join(1000);//规定业务接口执行不能超过的时长
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    method.interrupt();//调用中断很重要，如果不调用的话，就会回到上面说的，两个线程并发执行，就起不到效果了。
-//					try {
-////						System.out.print(regex + "\n");
-////						Pattern p = Pattern.compile(regex);
-////						Analyzer redosAnalyzer = new Analyzer(p, max_length);
-////						redosAnalyzer.doStaticAnalysis();
-////						redosAnalyzer.doDynamicAnalysis(outVul, cnt, threshold);
-//						testSingleRegexDIY(regex, outVul);
-//					} catch (java.util.regex.PatternSyntaxException e) {} catch (Exception e) {
-//						e.printStackTrace();
-//					}
+
+                    // 限制任务执行时间
+////                    Thread method = new Thread(new ThreadMethod(regex, outVul));
+//                    Thread method = new Thread(new ThreadMethod(regex));
+//                    //调用方法
+//                    method.start();
+//                    try {
+//                        method.join(1000);//规定业务接口执行不能超过的时长
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                    method.interrupt();//调用中断很重要，如果不调用的话，就会回到上面说的，两个线程并发执行，就起不到效果了。
+
+                    // 不限制执行时间
+					try {
+//						System.out.print(regex + "\n");
+//						Pattern p = Pattern.compile(regex);
+//						Analyzer redosAnalyzer = new Analyzer(p, max_length);
+//						redosAnalyzer.doStaticAnalysis();
+//						redosAnalyzer.doDynamicAnalysis(outVul, cnt, threshold);
+						testSingleRegexDIY(regex);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+                    //无关
                     cnt += 1;
                 }
 
@@ -229,14 +235,15 @@ public class RedosTester {
 ////			RedosTester.testSingleRegex("(abc)*[a-z]*");
 ////			RedosTester.testSingleRegex("((a*b)|(c*d)|(e*f*))*");
 //
-//			RedosTester.testSingleRegexDIY("^123(((a*a*)c)\\d)+456$");
+			RedosTester.testSingleRegexDIY("(str\\=)\\s*(?&lt;value&gt;([a-zA-Z0-9\\,\\.]{1})*)");
+//			RedosTester.testSingleRegexDIY("(?:(?:http|https)://(?:(?:[^/&=()/§, ]*?)*\\.)+(?:\\w{2,3})+?)(?:/+[^ ?,'§$&()={\\[\\]}]*)*(?:\\?+.*)?$");
 //
 ////			Test Len
 ////			RedosTester.testSingleRegex("m(?=a)n(?!b)x(?<=c)y(?<!d)z");
 //		else if (args.length == 2)
 //			RedosTester.vulValidation(args[0], args[1]);
 //		else
-        RedosTester.testDataset();
+//        RedosTester.testDataset();
     }
 
 }

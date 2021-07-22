@@ -454,6 +454,7 @@ public class Analyzer {
                 directedPath = sourcePath;
                 MatchGenerator tmpGenerator = headGenerator;
                 index = 0;
+                assert directedPath.size()>0;
                 while (directedPath.get(index).sub_next == null && directedPath.get(index).new_atoms == null
                         && !pattern.isSlice(directedPath.get(index)) && index < directedPath.size() - 1)
                     index += 1;
@@ -676,8 +677,12 @@ public class Analyzer {
         public VulStructure(Node LoopNode, ArrayList<Set<Integer>> path) {
             initialize();
             path_start = LoopNode;
-            suffixHead = path_start.direct_next;
             prefix = new StringBuffer(getPrefix());
+
+            Node p = path_start;
+            while(p.direct_next == null)
+                p = p.direct_prev;
+            suffixHead = p.direct_next;
             suffix = new StringBuffer(getSuffix());
             pump = new StringBuffer();
             for (Set<Integer> s : path) {
@@ -1790,10 +1795,12 @@ public class Analyzer {
             paths.add(path);
         } else if (node instanceof Branch) {
             for (Node atom : node.atoms) {
-                paths.addAll(getAllMatchSets(atom, end, new ArrayList<Set<Integer>>(), LL));
+                // ?也是branch，atoms是null和元组里的内容，self是'?'
+                if (atom != null) paths.addAll(getAllMatchSets(atom, end, new ArrayList<Set<Integer>>(), LL));
             }
         } else if (node instanceof Pattern.Loop) {
             ArrayList<ArrayList<Set<Integer>>> tmp_paths = new ArrayList<ArrayList<Set<Integer>>>();
+            assert node.sub_next != null;
             tmp_paths = getAllMatchSets(node.sub_next, end, new ArrayList<Set<Integer>>(), LL);
             for (ArrayList<Set<Integer>> path : tmp_paths) {
                 while (path.size() < ((Pattern.Loop) node).cmin) path.addAll(path);
@@ -1802,6 +1809,7 @@ public class Analyzer {
                     while (tmp_path.size() < LL) {
                         paths.add(new ArrayList<>(tmp_path));
                         tmp_path.addAll(path);
+                        if(path.size()==0)break;
                     }
                 } else {
                     while (tmp_path.size() < ((Pattern.Loop) node).cmax) {
@@ -1813,6 +1821,7 @@ public class Analyzer {
             if (((Pattern.Loop) node).cmin == 0) paths.add(new ArrayList<>());
         } else if (node instanceof Pattern.Curly) {
             ArrayList<ArrayList<Set<Integer>>> tmp_paths = new ArrayList<ArrayList<Set<Integer>>>();
+            assert node.sub_next != null;
             tmp_paths = getAllMatchSets(node.sub_next, end, new ArrayList<Set<Integer>>(), LL);
             for (ArrayList<Set<Integer>> path : tmp_paths) {
                 while (path.size() < ((Pattern.Curly) node).cmin) path.addAll(path);
@@ -1832,6 +1841,7 @@ public class Analyzer {
             if (((Pattern.Curly) node).cmin == 0) paths.add(new ArrayList<>());
         }
 
+        assert node.direct_next != null;
         if (node.direct_next == end) {
             return paths;
         }
