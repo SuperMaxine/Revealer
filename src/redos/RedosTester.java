@@ -109,34 +109,40 @@ public class RedosTester {
                 double threshold = 1e5;
                 int cnt = 0;
                 while ((regex = bufferedReader.readLine()) != null) {
-                    System.out.println(regex);
+//                    System.out.println(regex);
 
                     // 限制任务执行时间
-////                    Thread method = new Thread(new ThreadMethod(regex, outVul));
-//                    Thread method = new Thread(new ThreadMethod(regex));
-//                    //调用方法
-//                    method.start();
-//                    try {
-//                        method.join(1000);//规定业务接口执行不能超过的时长
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//                    method.interrupt();//调用中断很重要，如果不调用的话，就会回到上面说的，两个线程并发执行，就起不到效果了。
+//                    Thread method = new Thread(new ThreadMethod(regex, outVul));
+                    Thread method = new Thread(new ThreadMethod(regex));
+                    //调用方法
+                    method.start();
+                    try {
+                        method.join(1000);//规定业务接口执行不能超过的时长
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    method.interrupt();//调用中断很重要，如果不调用的话，就会回到上面说的，两个线程并发执行，就起不到效果了。
+                    method = null;
 
                     // 不限制执行时间
-					try {
-//						System.out.print(regex + "\n");
-//						Pattern p = Pattern.compile(regex);
-//						Analyzer redosAnalyzer = new Analyzer(p, max_length);
-//						redosAnalyzer.doStaticAnalysis();
-//						redosAnalyzer.doDynamicAnalysis(outVul, cnt, threshold);
-						testSingleRegexDIY(regex);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+//					try {
+////						System.out.print(regex + "\n");
+////						Pattern p = Pattern.compile(regex);
+////						Analyzer redosAnalyzer = new Analyzer(p, max_length);
+////						redosAnalyzer.doStaticAnalysis();
+////						redosAnalyzer.doDynamicAnalysis(outVul, cnt, threshold);
+//						testSingleRegexDIY(regex);
+//					} catch (Exception e) {
+//						e.printStackTrace();
+//					}
 
                     //无关
                     cnt += 1;
+                    if(cnt%500==0)System.out.println(cnt);
+//                    else if(cnt>2500 && cnt%100==0)System.out.println(cnt);
+                    else if(cnt>2700 && cnt%10==0)System.out.println(cnt);
+
+//                    if(cnt%100==0)System.out.println(cnt);
                 }
 
                 inputStream.close();
@@ -198,28 +204,36 @@ public class RedosTester {
         // TODO: match匹配
 //		System.out.print("\nA vul:\n"+regex+"\n");
         for (Analyzer.VulStructure vul : redosAnalyzer.possibleVuls) {
-            StringBuffer attack_string = new StringBuffer(vul.prefix);
-            for (int i = 0; i < 100; i++) {
-                attack_string.append(vul.pump);
+//            StringBuffer attack_string = new StringBuffer(vul.prefix);
+//            for (int i = 0; i < 100; i++) {
+//                attack_string.append(vul.pump);
+//            }
+//            attack_string.append(vul.suffix);
+////			System.out.print(attack_string+"\n");
+            StringBuffer pump_string = new StringBuffer();
+            int Len = 100;
+            while(pump_string.length()<Len){
+                pump_string.append(vul.pump);
             }
-            attack_string.append(vul.suffix);
-//			System.out.print(attack_string+"\n");
             try {
 //				Pattern p = Pattern.compile(regex);
-                Matcher m = p.matcher(attack_string.toString(), new Trace(threshold, false));
+//                Matcher m = p.matcher(attack_string.toString(), new Trace(threshold, false));
+                Matcher m = p.matcher(vul.prefix.toString() + pump_string.toString() + vul.suffix.toString(), new Trace(threshold, false));
                 Trace t = m.find();
 
 //				System.out.print(t.getMatchSteps() + "\n");
                 if (t.getMatchSteps() > 1e5) {
 //                    outVul.write(regex + "\n");
 //                    outVul.write("Can be attacked");
-                    System.out.println("Can be attacked");
+//                    System.out.println("Can be attacked:"+regex);
                     break;
                 }
             } catch (Exception e) {
 //                System.out.print("0\n");
-//                e.printStackTrace();
-                System.out.println(e);
+                System.out.println("Run Failed:"+regex);
+                e.printStackTrace();
+                break;
+//                System.out.println(e);
 //                return;
             }
         }
@@ -235,7 +249,7 @@ public class RedosTester {
 ////			RedosTester.testSingleRegex("(abc)*[a-z]*");
 ////			RedosTester.testSingleRegex("((a*b)|(c*d)|(e*f*))*");
 //
-			RedosTester.testSingleRegexDIY("(str\\=)\\s*(?&lt;value&gt;([a-zA-Z0-9\\,\\.]{1})*)");
+//			RedosTester.testSingleRegexDIY("(str\\=)\\s*(?&lt;value&gt;([a-zA-Z0-9\\,\\.]{1})*)");
 //			RedosTester.testSingleRegexDIY("(?:(?:http|https)://(?:(?:[^/&=()/§, ]*?)*\\.)+(?:\\w{2,3})+?)(?:/+[^ ?,'§$&()={\\[\\]}]*)*(?:\\?+.*)?$");
 //
 ////			Test Len
@@ -243,7 +257,7 @@ public class RedosTester {
 //		else if (args.length == 2)
 //			RedosTester.vulValidation(args[0], args[1]);
 //		else
-//        RedosTester.testDataset();
+        RedosTester.testDataset();
     }
 
 }
