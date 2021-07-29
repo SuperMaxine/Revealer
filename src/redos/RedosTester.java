@@ -197,11 +197,11 @@ public class RedosTester {
         Analyzer redosAnalyzer = new Analyzer(p, max_length);
         // TODO: 解决.* √
         redosAnalyzer.doStaticAnalysisDIY();
-        // TODO: 根据路径生成待匹配的字符串
+        // TODO: 根据路径生成待匹配的字符串 √
         // TODO: 检测lookaround，如果不符合则重新生成（具体影响暂定）
         // 1. 生成lookaround节点的Set串
         // 2. 与Set路径的前几个取交集
-        // TODO: match匹配
+        // TODO: match匹配 √
 //		System.out.print("\nA vul:\n"+regex+"\n");
         for (Analyzer.VulStructure vul : redosAnalyzer.possibleVuls) {
 //            StringBuffer attack_string = new StringBuffer(vul.prefix);

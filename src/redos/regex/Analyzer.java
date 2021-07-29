@@ -454,7 +454,7 @@ public class Analyzer {
                 directedPath = sourcePath;
                 MatchGenerator tmpGenerator = headGenerator;
                 index = 0;
-                assert directedPath.size()>0;
+                assert directedPath.size() > 0;
                 while (directedPath.get(index).sub_next == null && directedPath.get(index).new_atoms == null
                         && !pattern.isSlice(directedPath.get(index)) && index < directedPath.size() - 1)
                     index += 1;
@@ -1332,6 +1332,7 @@ public class Analyzer {
 
             Set<ArrayList<Set<Integer>>> possiblePath = new HashSet<>();
 
+            // 检查自己生成的路径中有没有重叠（EOA、EOD、NQ）
             for (int i = 0; i < tmp.size() - 1; i++) {
                 for (int j = i + 1; j < tmp.size(); j++) {
                     overlap o = checkOverlap(tmp.get(i), tmp.get(j));
@@ -1757,13 +1758,15 @@ public class Analyzer {
             else ans.type = 2;
         }
 
-        // 完全无交集返回null
-        // 前缀返回集合
-        // 后缀返回集合
-        // 完全重合集合
+        // 完全无交集返回 0
+        // 前缀返回 1
+        // 后缀返回 2
+        // 完全重合 3
         // 问题：是否在乎重合种类，以及要不要记录是哪两条路径重合
         return ans;
     }
+
+    boolean meetEnd;
 
     public ArrayList<ArrayList<Set<Integer>>> getAllMatchSets(Node node, Node end, ArrayList<Set<Integer>> prevPath, int LL) {
         ArrayList<ArrayList<Set<Integer>>> paths = new ArrayList<ArrayList<Set<Integer>>>();
@@ -1789,7 +1792,10 @@ public class Analyzer {
 //                    return paths;
                 assert str.length() > 0;
                 for (String retval : str.split("")) {
-                    path.add(new HashSet<Integer>((int) retval.charAt(0)));
+//                    System.out.print((int)retval.charAt(0));
+                    Set<Integer> char2Int = new HashSet<Integer>();
+                    char2Int.add((int)retval.charAt(0));
+                    path.add(char2Int);
                 }
             }
             paths.add(path);
@@ -1809,7 +1815,7 @@ public class Analyzer {
                     while (tmp_path.size() < LL) {
                         paths.add(new ArrayList<>(tmp_path));
                         tmp_path.addAll(path);
-                        if(path.size()==0)break;
+                        if (path.size() == 0) break;
                     }
                 } else {
                     while (tmp_path.size() < ((Pattern.Loop) node).cmax) {
@@ -1839,10 +1845,31 @@ public class Analyzer {
                 }
             }
             if (((Pattern.Curly) node).cmin == 0) paths.add(new ArrayList<>());
+        } else if (node instanceof  Pattern.GroupCurly) {
+            ArrayList<ArrayList<Set<Integer>>> tmp_paths = new ArrayList<ArrayList<Set<Integer>>>();
+            assert node.sub_next != null;
+            tmp_paths = getAllMatchSets(node.sub_next, end, new ArrayList<Set<Integer>>(), LL);
+            for (ArrayList<Set<Integer>> path : tmp_paths) {
+                while (path.size() < ((Pattern.GroupCurly) node).cmin) path.addAll(path);
+                ArrayList<Set<Integer>> tmp_path = new ArrayList<>(path);
+                if (((Pattern.GroupCurly) node).cmax == Integer.MAX_VALUE || ((Pattern.GroupCurly) node).cmax == 0) {
+                    while (tmp_path.size() < LL) {
+                        paths.add(new ArrayList<>(tmp_path));
+                        tmp_path.addAll(path);
+                    }
+                } else {
+                    while (tmp_path.size() < ((Pattern.GroupCurly) node).cmax) {
+                        paths.add(new ArrayList<>(tmp_path));
+                        tmp_path.addAll(path);
+                    }
+                }
+            }
+            if (((Pattern.GroupCurly) node).cmin == 0) paths.add(new ArrayList<>());
         }
 
         assert node.direct_next != null;
         if (node.direct_next == end) {
+            meetEnd = true;
             return paths;
         }
 
