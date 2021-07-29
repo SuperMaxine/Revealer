@@ -680,7 +680,26 @@ public class Analyzer {
             prefix = new StringBuffer(getPrefix());
 
             Node p = path_start;
-            while(p.direct_next == null)
+            while (p.direct_next == null)
+                p = p.direct_prev;
+            suffixHead = p.direct_next;
+            suffix = new StringBuffer(getSuffix());
+            pump = new StringBuffer();
+            for (Set<Integer> s : path) {
+                for (int c : s) {
+                    pump.append((char) c);
+                    break;
+                }
+            }
+        }
+
+        public VulStructure(Node LoopNode1, Node LoopNode2, ArrayList<Set<Integer>> path) {
+            initialize();
+            path_start = LoopNode1;
+            prefix = new StringBuffer(getPrefix());
+
+            Node p = LoopNode2;
+            while (p.direct_next == null)
                 p = p.direct_prev;
             suffixHead = p.direct_next;
             suffix = new StringBuffer(getSuffix());
@@ -1362,6 +1381,146 @@ public class Analyzer {
 //            }
 //        }
 
+        // 检查三条路径之间的关系（POA）
+//        // 1. 两条路径直接相连
+//        ArrayList<Node> loopNodeList = new ArrayList<Node>(loopNodes);
+//        for (int i = 0; i < loopNodeList.size() - 1; i++) {
+//            for (int j = i + 1; j < loopNodeList.size(); j++) {
+//                Node a = loopNodeList.get(i);
+//                Node b = loopNodeList.get(j);
+//                Node pA = pattern.getDirectParent(a);
+//                Node pB = pattern.getDirectParent(b);
+////                if (onDirectNext(pA, pB) || pA.self == "|" && pA == pB) {
+//                if (onDirectNext(pA, pB)) {
+//                    ArrayList<Node> nPath = new ArrayList<Node>();
+//                    nPath.add(a);
+//                    nPath.add(b);
+//                    loopAfterLoop.add(nPath);
+//                } else if (onDirectNext(pB, pA)) {
+//                    ArrayList<Node> nPath = new ArrayList<Node>();
+//                    nPath.add(b);
+//                    nPath.add(a);
+//                    loopAfterLoop.add(nPath);
+//                }
+//            }
+//        }
+        // 2.两条路径中间相隔
+        ArrayList<Node> loopNodeList = new ArrayList<Node>(loopNodes);
+        for (int i = 0; i < loopNodeList.size() - 1; i++) {
+            for (int j = i + 1; j < loopNodeList.size(); j++) {
+                Node a = loopNodeList.get(i);
+                Node b = loopNodeList.get(j);
+
+                ArrayList<ArrayList<Set<Integer>>> aPaths = allMatchs.get(i);
+                ArrayList<ArrayList<Set<Integer>>> bPaths = allMatchs.get(j);
+
+                // p1、p3?
+                for (ArrayList<Set<Integer>> aPath : aPaths) {
+                    for (ArrayList<Set<Integer>> bPath : bPaths) {
+
+
+                        // 判断两条路径是否相等
+                        overlap o = checkOverlap(aPath, bPath);
+                        if (o.type == 3) {
+                            // 求中间串p2, order为0则a为p1、b为p3，order为1则b为p1、a为p3
+                            meetEnd = false;
+                            int order = 0;
+                            ArrayList<ArrayList<Set<Integer>>> p2 = getAllMatchSets(a.direct_next, b, new ArrayList<>(), 4);
+                            if (meetEnd == false) {
+                                p2 = getAllMatchSets(b.direct_next, a, new ArrayList<>(), 4);
+                                order = 1;
+                            }
+
+                            // 按理说无论如何都不可能两个counting之间不存在先后关系，这里只是以防万一
+                            if (meetEnd == false) {
+                                System.out.println("Never meet the End");
+                                continue;
+                            }
+
+                            p2.removeIf(t -> t.size() == 0);
+                            // 两串路径直接相接，则跳过
+                            if (p2.size() == 0) {
+                                continue;
+                            }
+
+                            // order为0则a为p1、b为p3，order为1则b为p1、a为p3
+                            if (order == 0) {
+                                for(ArrayList<Set<Integer>> t : p2){
+                                    // p2是p1后缀
+                                    overlap mid1 = checkOverlap(aPath, t);
+                                    if(mid1.type==2&&mid1.bigOne==aPath){
+                                        VulStructure vul = new VulStructure(a, b, mid1.suffix);
+                                        possibleVuls.add(vul);
+                                    }
+                                    // p2是p3前缀
+                                    overlap mid2 = checkOverlap(bPath, t);
+                                    if(mid1.type==1&&mid1.bigOne==bPath){
+                                        VulStructure vul = new VulStructure(a, b, mid1.suffix);
+                                        possibleVuls.add(vul);
+                                    }
+                                }
+                            } else {
+                                for(ArrayList<Set<Integer>> t : p2){
+                                    // p2是p1后缀
+                                    overlap mid1 = checkOverlap(bPath, t);
+                                    if(mid1.type==2&&mid1.bigOne==bPath){
+                                        VulStructure vul = new VulStructure(a, b, mid1.suffix);
+                                        possibleVuls.add(vul);
+                                    }
+                                    // p2是p3前缀
+                                    overlap mid2 = checkOverlap(aPath, t);
+                                    if(mid1.type==1&&mid1.bigOne==aPath){
+                                        VulStructure vul = new VulStructure(b, a, mid1.preffix);
+                                        possibleVuls.add(vul);
+                                    }
+                                }
+                            }
+                        }
+//                        // 判断两条路径是否相等
+//                        if (aPath.size() == bPath.size()) {
+//                            boolean equal = true;
+//                            ArrayList<Set<Integer>> tmpPath = new ArrayList<>();
+//                            for (int k = 0; k < aPath.size(); k++) {
+//                                Set<Integer> tmpSet = new HashSet<>();
+//                                tmpSet.addAll(aPath.get(k));
+//                                tmpSet.retainAll(bPath.get(k));
+//                                if (tmpSet.size() == 0) {
+//                                    equal = false;
+//                                    break;
+//                                } else {
+//                                    tmpPath.add(tmpSet);
+//                                }
+//                            }
+//                            // 两条路径确实相等
+//                            if (equal && tmpPath.size() == aPath.size()) {
+//                                // 求中间串p2
+//                                meetEnd = false;
+//                                ArrayList<ArrayList<Set<Integer>>> tmp = getAllMatchSets(a, b, new ArrayList<>(), 4);
+//                                if (meetEnd == false) {
+//                                    tmp = getAllMatchSets(b, a, new ArrayList<>(), 4);
+//                                }
+//                                // 按理说无论如何都不可能两个counting之间不存在先后关系，这里只是以防万一
+//                                if(meetEnd==false){
+//                                    System.out.println("Never meet the End");
+//                                    continue;
+//                                }
+//                                tmp.removeIf(t -> t.size() == 0);
+//                                // 两串路径直接相接，则跳过
+//                                if(tmp.size()==0){
+//                                    continue;
+//                                }
+//                                overlap o = checkOverlap(tmp.get(i), tmp.get(j));
+//                                if (o.type != 0 && !possiblePath.contains(o.bigOne)) {
+//                                    possiblePath.add(o.bigOne);
+//                                }
+//                            }
+//                        }
+                    }
+                }
+
+            }
+        }
+        System.out.print("");
     }
 
     public void doStaticAnalysis() {

@@ -249,7 +249,8 @@ public class RedosTester {
 ////			RedosTester.testSingleRegex("(abc)*[a-z]*");
 ////			RedosTester.testSingleRegex("((a*b)|(c*d)|(e*f*))*");
 //
-//			RedosTester.testSingleRegexDIY("(str\\=)\\s*(?&lt;value&gt;([a-zA-Z0-9\\,\\.]{1})*)");
+//        RedosTester.testSingleRegexDIY("(str\\=)\\s*(?&lt;value&gt;([a-zA-Z0-9\\,\\.]{1})*)");
+        RedosTester.testSingleRegexDIY("zxc(abc)*bc(abc)*zxc");
 //			RedosTester.testSingleRegexDIY("(?:(?:http|https)://(?:(?:[^/&=()/§, ]*?)*\\.)+(?:\\w{2,3})+?)(?:/+[^ ?,'§$&()={\\[\\]}]*)*(?:\\?+.*)?$");
 //
 ////			Test Len
@@ -257,7 +258,7 @@ public class RedosTester {
 //		else if (args.length == 2)
 //			RedosTester.vulValidation(args[0], args[1]);
 //		else
-        RedosTester.testDataset();
+//        RedosTester.testDataset();
     }
 
 }
