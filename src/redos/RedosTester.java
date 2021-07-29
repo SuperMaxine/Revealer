@@ -182,8 +182,8 @@ public class RedosTester {
             } catch (java.util.regex.PatternSyntaxException e) {
                 return;
             } catch (Exception e) {
-//                e.printStackTrace();
-                System.out.println(e);
+                e.printStackTrace();
+//                System.out.println(e);
                 return;
             }
         }
@@ -250,8 +250,9 @@ public class RedosTester {
 ////			RedosTester.testSingleRegex("((a*b)|(c*d)|(e*f*))*");
 //
 //        RedosTester.testSingleRegexDIY("(str\\=)\\s*(?&lt;value&gt;([a-zA-Z0-9\\,\\.]{1})*)");
-        RedosTester.testSingleRegexDIY("zxc(abc)*bc(abc)*zxc");
+//        RedosTester.testSingleRegexDIY("zxc(abc)*bc(abc)*zxc");
 //			RedosTester.testSingleRegexDIY("(?:(?:http|https)://(?:(?:[^/&=()/§, ]*?)*\\.)+(?:\\w{2,3})+?)(?:/+[^ ?,'§$&()={\\[\\]}]*)*(?:\\?+.*)?$");
+			RedosTester.testSingleRegexDIY("^(?=^.{1,254}$)(^(?:(?!\\.|-)([a-z0-9\\-\\*]{1,63}|([a-z0-9\\-]{1,62}[a-z0-9]))\\.)+(?:[a-z]{2,})$)$");
 //
 ////			Test Len
 ////			RedosTester.testSingleRegex("m(?=a)n(?!b)x(?<=c)y(?<!d)z");
