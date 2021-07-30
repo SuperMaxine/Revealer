@@ -44,6 +44,7 @@ public class Analyzer {
         public StringBuffer prefix;
         public StringBuffer pump;
         public StringBuffer suffix;
+        public VulTypeDIY typeDIY;
         Driver suffixDriver = null;
         ArrayList<ArrayList<Node>> pathSharing;
         ArrayList<Node> fullPath;
@@ -674,8 +675,9 @@ public class Analyzer {
             }
         }
 
-        public VulStructure(Node LoopNode, ArrayList<Set<Integer>> path) {
+        public VulStructure(Node LoopNode, ArrayList<Set<Integer>> path, VulTypeDIY type) {
             initialize();
+            typeDIY = type;
             path_start = LoopNode;
             prefix = new StringBuffer(getPrefix());
 
@@ -693,8 +695,9 @@ public class Analyzer {
             }
         }
 
-        public VulStructure(Node LoopNode1, Node LoopNode2, ArrayList<Set<Integer>> path) {
+        public VulStructure(Node LoopNode1, Node LoopNode2, ArrayList<Set<Integer>> path, VulTypeDIY type) {
             initialize();
+            typeDIY = type;
             path_start = LoopNode1;
             prefix = new StringBuffer(getPrefix());
 
@@ -1220,6 +1223,10 @@ public class Analyzer {
         LOOP_IN_LOOP, BRANCH_IN_LOOP, LOOP_AFTER_LOOP, DIY
     }
 
+    public enum VulTypeDIY {
+        OneCounting, POA, SLQ
+    }
+
     public enum CurState {
         SATISFIED, UNSATISFIED, ONLEAVE
     }
@@ -1362,7 +1369,7 @@ public class Analyzer {
             }
 
             for (ArrayList<Set<Integer>> p : possiblePath) {
-                VulStructure vul = new VulStructure(node, p);
+                VulStructure vul = new VulStructure(node, p, VulTypeDIY.OneCounting);
                 possibleVuls.add(vul);
             }
         }
@@ -1411,6 +1418,10 @@ public class Analyzer {
                 Node a = loopNodeList.get(i);
                 Node b = loopNodeList.get(j);
 
+                Node a2GetDirectNext=a;while(a2GetDirectNext.direct_next==null)a2GetDirectNext=a2GetDirectNext.direct_prev;
+                Node b2GetDirectNext=b;while(b2GetDirectNext.direct_next==null)b2GetDirectNext=b2GetDirectNext.direct_prev;
+
+
                 ArrayList<ArrayList<Set<Integer>>> aPaths = allMatchs.get(i);
                 ArrayList<ArrayList<Set<Integer>>> bPaths = allMatchs.get(j);
 
@@ -1425,15 +1436,15 @@ public class Analyzer {
                             // 求中间串p2, order为0则a为p1、b为p3，order为1则b为p1、a为p3
                             meetEnd = false;
                             int order = 0;
-                            ArrayList<ArrayList<Set<Integer>>> p2 = getAllMatchSets(a.direct_next, b, new ArrayList<>(), 4);
+                            ArrayList<ArrayList<Set<Integer>>> p2 = getAllMatchSets(a2GetDirectNext.direct_next, b, new ArrayList<>(), 4);
                             if (meetEnd == false) {
-                                p2 = getAllMatchSets(b.direct_next, a, new ArrayList<>(), 4);
+                                p2 = getAllMatchSets(b2GetDirectNext.direct_next, a, new ArrayList<>(), 4);
                                 order = 1;
                             }
 
                             // 按理说无论如何都不可能两个counting之间不存在先后关系，这里只是以防万一
                             if (meetEnd == false) {
-                                System.out.println("Never meet the End");
+//                                System.out.println("Never meet the End");
                                 continue;
                             }
 
@@ -1449,13 +1460,13 @@ public class Analyzer {
                                     // p2是p1后缀
                                     overlap mid1 = checkOverlap(aPath, t);
                                     if(mid1.type==2&&mid1.bigOne==aPath){
-                                        VulStructure vul = new VulStructure(a, b, mid1.suffix);
+                                        VulStructure vul = new VulStructure(a, b, mid1.suffix, VulTypeDIY.POA);
                                         possibleVuls.add(vul);
                                     }
                                     // p2是p3前缀
                                     overlap mid2 = checkOverlap(bPath, t);
                                     if(mid1.type==1&&mid1.bigOne==bPath){
-                                        VulStructure vul = new VulStructure(a, b, mid1.suffix);
+                                        VulStructure vul = new VulStructure(a, b, mid1.suffix, VulTypeDIY.POA);
                                         possibleVuls.add(vul);
                                     }
                                 }
@@ -1464,13 +1475,13 @@ public class Analyzer {
                                     // p2是p1后缀
                                     overlap mid1 = checkOverlap(bPath, t);
                                     if(mid1.type==2&&mid1.bigOne==bPath){
-                                        VulStructure vul = new VulStructure(a, b, mid1.suffix);
+                                        VulStructure vul = new VulStructure(a, b, mid1.suffix, VulTypeDIY.POA);
                                         possibleVuls.add(vul);
                                     }
                                     // p2是p3前缀
                                     overlap mid2 = checkOverlap(aPath, t);
                                     if(mid1.type==1&&mid1.bigOne==aPath){
-                                        VulStructure vul = new VulStructure(b, a, mid1.preffix);
+                                        VulStructure vul = new VulStructure(b, a, mid1.preffix, VulTypeDIY.POA);
                                         possibleVuls.add(vul);
                                     }
                                 }
@@ -1520,7 +1531,7 @@ public class Analyzer {
 
             }
         }
-        System.out.print("");
+//        System.out.print("");
     }
 
     public void doStaticAnalysis() {

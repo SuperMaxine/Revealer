@@ -211,8 +211,8 @@ public class RedosTester {
 //            attack_string.append(vul.suffix);
 ////			System.out.print(attack_string+"\n");
             StringBuffer pump_string = new StringBuffer();
-            int Len = 100;
-            while(pump_string.length()<Len){
+            int Len = vul.typeDIY == Analyzer.VulTypeDIY.POA ? 10000 : 100;
+            while (pump_string.length() < Len) {
                 pump_string.append(vul.pump);
             }
             try {
@@ -225,12 +225,12 @@ public class RedosTester {
                 if (t.getMatchSteps() > 1e5) {
 //                    outVul.write(regex + "\n");
 //                    outVul.write("Can be attacked");
-//                    System.out.println("Can be attacked:"+regex);
+                    System.out.println("Can be attacked:" + regex);
                     break;
                 }
             } catch (Exception e) {
 //                System.out.print("0\n");
-                System.out.println("Run Failed:"+regex);
+                System.out.println("Run Failed:" + regex);
                 e.printStackTrace();
                 break;
 //                System.out.println(e);
