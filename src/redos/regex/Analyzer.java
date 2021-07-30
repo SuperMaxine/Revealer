@@ -1444,7 +1444,7 @@ public class Analyzer {
 
                             // 按理说无论如何都不可能两个counting之间不存在先后关系，这里只是以防万一
                             if (meetEnd == false) {
-//                                System.out.println("Never meet the End");
+                                System.out.println("Never meet the End");
                                 continue;
                             }
 

@@ -119,33 +119,42 @@ public class RedosTester {
 //                    es.submit(new Task(regex));
                     String finalRegex = regex;
                     Callable<String> call = new Callable<String>() {
+                        //                        public String call() throws Exception {
+//                            //开始执行耗时操作
+//                            testSingleRegexDIY(finalRegex);
+//                            return "线程执行完成.";
+//                        }
                         public String call() throws Exception {
-                            //开始执行耗时操作
-                            testSingleRegexDIY(finalRegex);
+                            try {
+                                testSingleRegexDIY(finalRegex);
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt(); //restore interrupted status
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                             return "线程执行完成.";
                         }
-
                     };
 
                     Future<String> future = exec.submit(call);
                     try {
                         String obj = future.get(3, TimeUnit.SECONDS); //任务处理超时时间设为 1 秒
-                        System.out.println("Success:"+cnt);
+                        System.out.println("Success:" + cnt);
                     } catch (InterruptedException e) {
                         future.cancel(true);
-                        System.out.println("方法执行中断:"+cnt+"\n"+e);
+                        System.out.println("方法执行中断:" + cnt + "\n" + e);
 //                        e.printStackTrace();
-                    } catch (ExecutionException e){
+                    } catch (ExecutionException e) {
                         future.cancel(true);
-                        System.out.println("Execution异常:"+cnt+"\n"+e);
+                        System.out.println("Execution异常:" + cnt + "\n" + e);
 //                        e.printStackTrace();
-                    } catch (TimeoutException e){
+                    } catch (TimeoutException e) {
                         future.cancel(true);
-                        System.out.println("方法执行时间超时:"+cnt+"\n"+e);
+                        System.out.println("方法执行时间超时:" + cnt + "\n" + e);
 //                        e.printStackTrace();
                     }
 
-                // 不限制执行时间
+                    // 不限制执行时间
 //					try {
 ////						System.out.print(regex + "\n");
 ////						Pattern p = Pattern.compile(regex);
@@ -157,25 +166,25 @@ public class RedosTester {
 //						e.printStackTrace();
 //					}
 
-                //无关
-                cnt += 1;
+                    //无关
+                    cnt += 1;
 //                    if(cnt%500==0)System.out.println(cnt);
 //                    else if(cnt>2500 && cnt%100==0)System.out.println(cnt);
 //                    else if(cnt>2700 && cnt%10==0)
 //                System.out.println(cnt);
 
 //                    if(cnt%100==0)System.out.println(cnt);
+                }
+                exec.shutdown();
+                inputStream.close();
+                bufferedReader.close();
             }
-            exec.shutdown();
-            inputStream.close();
-            bufferedReader.close();
-        }
-        outVul.flush();
-        outVul.close();
+            outVul.flush();
+            outVul.close();
 
-    }
+        }
         System.out.print("finished\n");
-}
+    }
 
 
     public static void testSingleRegexDIY(String regex) throws Exception {
@@ -200,7 +209,7 @@ public class RedosTester {
 //            attack_string.append(vul.suffix);
 ////			System.out.print(attack_string+"\n");
             StringBuffer pump_string = new StringBuffer();
-            int Len = vul.typeDIY == Analyzer.VulTypeDIY.POA ? 10000 : 100;
+            int Len = vul.typeDIY == Analyzer.VulTypeDIY.POA ? 1000 : 100;
             while (pump_string.length() < Len) {
                 pump_string.append(vul.pump);
             }
