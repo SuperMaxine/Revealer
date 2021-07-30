@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.concurrent.*;
 
 import com.alibaba.fastjson.JSONObject;
 
@@ -111,18 +112,8 @@ public class RedosTester {
                 while ((regex = bufferedReader.readLine()) != null) {
 //                    System.out.println(regex);
 
-                    // 限制任务执行时间
-//                    Thread method = new Thread(new ThreadMethod(regex, outVul));
-                    Thread method = new Thread(new ThreadMethod(regex));
-                    //调用方法
-                    method.start();
-                    try {
-                        method.join(1000);//规定业务接口执行不能超过的时长
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    method.interrupt();//调用中断很重要，如果不调用的话，就会回到上面说的，两个线程并发执行，就起不到效果了。
-                    method = null;
+                    // 限制执行时间
+                    new InterruptTest().getResult(regex, cnt);
 
                     // 不限制执行时间
 //					try {
@@ -138,9 +129,10 @@ public class RedosTester {
 
                     //无关
                     cnt += 1;
-                    if(cnt%500==0)System.out.println(cnt);
+//                    if(cnt%500==0)System.out.println(cnt);
 //                    else if(cnt>2500 && cnt%100==0)System.out.println(cnt);
-                    else if(cnt>2700 && cnt%10==0)System.out.println(cnt);
+//                    else if(cnt>2700 && cnt%10==0)
+                    System.out.println(cnt);
 
 //                    if(cnt%100==0)System.out.println(cnt);
                 }
@@ -155,37 +147,58 @@ public class RedosTester {
         System.out.print("finished\n");
     }
 
-    static class ThreadMethod implements Runnable {
-        private String regex;
-//        private BufferedWriter outVul;
 
-        public ThreadMethod(String regex, BufferedWriter outVul) {
-            this.regex = regex;
-//            this.outVul = outVul;
-        }
+    public static class InterruptTest {
+        public String getResult(String regex, int cnt) {
+            ExecutorService executorService = Executors.newSingleThreadExecutor();
+//            FutureTask<String> future = new FutureTask<String>(new Callable<String>() {
+//                public String call() throws Exception {
+//                    InterruptTest interrupt = new InterruptTest();
+//                    return interrupt.getValue(regex, cnt);
+//                }
+//            });
+            FutureTask<String> future = new FutureTask<String>(new Callable<String>() {
+                public String call() throws Exception {
+                    InterruptTest interrupt = new InterruptTest();
+                    return interrupt.getValue(regex, cnt);
+                }
+            });
 
-        public ThreadMethod(String regex) {
-            this.regex = regex;
-//            this.outVul = outVul;
-        }
+            executorService.execute(future);
 
-        @Override
-        public void run() {
+            String result = null;
             try {
-//						System.out.print(regex + "\n");
-//						Pattern p = Pattern.compile(regex);
-//						Analyzer redosAnalyzer = new Analyzer(p, max_length);
-//						redosAnalyzer.doStaticAnalysis();
-//						redosAnalyzer.doDynamicAnalysis(outVul, cnt, threshold);
-//                testSingleRegexDIY(regex, outVul);
-                testSingleRegexDIY(regex);
-            } catch (java.util.regex.PatternSyntaxException e) {
-                return;
-            } catch (Exception e) {
-//                e.printStackTrace();
-                System.out.println(e);
-                return;
+                //设定超时的时间范围为10秒
+                result = future.get(1, TimeUnit.SECONDS);
+                executorService.shutdownNow();
+            } catch (InterruptedException e) {
+                future.cancel(true);
+                executorService.shutdownNow();
+                System.out.println("方法执行中断:" + cnt);
+            } catch (ExecutionException e) {
+                future.cancel(true);
+                executorService.shutdownNow();
+                System.out.println("Excution异常" + cnt);
+            } catch (TimeoutException e) {
+                future.cancel(true);
+                executorService.shutdownNow();
+                System.out.println("方法执行时间超时" + cnt);
+                result = "方法执行时间超时";
             }
+
+            executorService.shutdownNow();
+            return result;
+        }
+
+        public String getValue(String regex, int cnt) {
+            try {
+                testSingleRegexDIY(regex);
+//                System.out.println("正常执行");
+            } catch (Exception e) {
+                System.out.println("getValue错误:" + cnt + "\n" + e);
+                e.printStackTrace();
+            }
+            return "正常结果";
         }
     }
 
@@ -240,25 +253,9 @@ public class RedosTester {
     }
 
     public static void main(String[] args) throws Exception {
-//		if (args.length == 1)
-////			RedosTester.testSingleRegex(args[0]);
-////			RedosTester.testSingleRegex("^(((a*a*)c)\\d)+$");
-////			RedosTester.testSingleRegex(".[a-zA-Z]");
-////			RedosTester.testSingleRegex("^(.|[^\"])*\"");
-////			RedosTester.testSingleRegex("[adgjl]*[a-z1-9][A-Z]");
-////			RedosTester.testSingleRegex("(abc)*[a-z]*");
-////			RedosTester.testSingleRegex("((a*b)|(c*d)|(e*f*))*");
-//
-//        RedosTester.testSingleRegexDIY("(str\\=)\\s*(?&lt;value&gt;([a-zA-Z0-9\\,\\.]{1})*)");
-        RedosTester.testSingleRegexDIY("zxc(abc)*bc(abc)*zxc");
-//			RedosTester.testSingleRegexDIY("(?:(?:http|https)://(?:(?:[^/&=()/§, ]*?)*\\.)+(?:\\w{2,3})+?)(?:/+[^ ?,'§$&()={\\[\\]}]*)*(?:\\?+.*)?$");
-//
-////			Test Len
-////			RedosTester.testSingleRegex("m(?=a)n(?!b)x(?<=c)y(?<!d)z");
-//		else if (args.length == 2)
-//			RedosTester.vulValidation(args[0], args[1]);
-//		else
-//        RedosTester.testDataset();
+//        RedosTester.testSingleRegexDIY("zxc(abc)*bc(abc)*zxc");
+//        RedosTester.testSingleRegexDIY("^\\s*[+-]?\\s*(?:\\d{1,3}(?:(,?)\\d{3})?(?:\\1\\d{3})*(\\.\\d*)?|\\.\\d+)\\s*$\n");
+        RedosTester.testDataset();
     }
 
 }
