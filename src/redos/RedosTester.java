@@ -230,8 +230,8 @@ public class RedosTester {
 
     public static void main(String[] args) throws Exception {
 //        RedosTester.testSingleRegexDIY("zxc(abc)*bc(abc)*zxc");
-//        RedosTester.testSingleRegexDIY("^\\s*[+-]?\\s*(?:\\d{1,3}(?:(,?)\\d{3})?(?:\\1\\d{3})*(\\.\\d*)?|\\.\\d+)\\s*$\n");
-        RedosTester.testDataset();
+        RedosTester.testSingleRegexDIY("^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+(?:[a-zA-Z]{2}|aero|asia|biz|cat|com|coop|edu|gov|info|int|jobs|mil|mobi|museum|name|net|org|pro|tel|travel)$");
+//        RedosTester.testDataset();
     }
 
 }

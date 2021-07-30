@@ -1436,15 +1436,15 @@ public class Analyzer {
                             // 求中间串p2, order为0则a为p1、b为p3，order为1则b为p1、a为p3
                             meetEnd = false;
                             int order = 0;
-                            ArrayList<ArrayList<Set<Integer>>> p2 = getAllMatchSets(a2GetDirectNext.direct_next, b, new ArrayList<>(), 4);
+                            ArrayList<ArrayList<Set<Integer>>> p2 = getAllMatchSets(a2GetDirectNext.direct_next, b, new ArrayList<>(), 1000);
                             if (meetEnd == false) {
-                                p2 = getAllMatchSets(b2GetDirectNext.direct_next, a, new ArrayList<>(), 4);
+                                p2 = getAllMatchSets(b2GetDirectNext.direct_next, a, new ArrayList<>(), 1000);
                                 order = 1;
                             }
 
                             // 按理说无论如何都不可能两个counting之间不存在先后关系，这里只是以防万一
                             if (meetEnd == false) {
-//                                System.out.println("Never meet the End");
+                                System.out.println("Never meet the End");
                                 continue;
                             }
 
@@ -1466,7 +1466,7 @@ public class Analyzer {
                                     // p2是p3前缀
                                     overlap mid2 = checkOverlap(bPath, t);
                                     if(mid1.type==1&&mid1.bigOne==bPath){
-                                        VulStructure vul = new VulStructure(a, b, mid1.suffix, VulTypeDIY.POA);
+                                        VulStructure vul = new VulStructure(a, b, mid2.preffix, VulTypeDIY.POA);
                                         possibleVuls.add(vul);
                                     }
                                 }
@@ -1481,7 +1481,7 @@ public class Analyzer {
                                     // p2是p3前缀
                                     overlap mid2 = checkOverlap(aPath, t);
                                     if(mid1.type==1&&mid1.bigOne==aPath){
-                                        VulStructure vul = new VulStructure(b, a, mid1.preffix, VulTypeDIY.POA);
+                                        VulStructure vul = new VulStructure(b, a, mid2.preffix, VulTypeDIY.POA);
                                         possibleVuls.add(vul);
                                     }
                                 }
