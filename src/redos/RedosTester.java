@@ -109,13 +109,43 @@ public class RedosTester {
                 int max_length = 128;
                 double threshold = 1e5;
                 int cnt = 0;
+                // 线程池写法，使用一个16线程的线程池
+                ExecutorService exec = Executors.newFixedThreadPool(16);
                 while ((regex = bufferedReader.readLine()) != null) {
 //                    System.out.println(regex);
 
                     // 限制执行时间
-                    new InterruptTest().getResult(regex, cnt);
+//                    new InterruptTest().getResult(regex, cnt);
+//                    es.submit(new Task(regex));
+                    String finalRegex = regex;
+                    Callable<String> call = new Callable<String>() {
+                        public String call() throws Exception {
+                            //开始执行耗时操作
+                            testSingleRegexDIY(finalRegex);
+                            return "线程执行完成.";
+                        }
 
-                    // 不限制执行时间
+                    };
+
+                    Future<String> future = exec.submit(call);
+                    try {
+                        String obj = future.get(3, TimeUnit.SECONDS); //任务处理超时时间设为 1 秒
+                        System.out.println("Success:"+cnt);
+                    } catch (InterruptedException e) {
+                        future.cancel(true);
+                        System.out.println("方法执行中断:"+cnt+"\n"+e);
+//                        e.printStackTrace();
+                    } catch (ExecutionException e){
+                        future.cancel(true);
+                        System.out.println("Execution异常:"+cnt+"\n"+e);
+//                        e.printStackTrace();
+                    } catch (TimeoutException e){
+                        future.cancel(true);
+                        System.out.println("方法执行时间超时:"+cnt+"\n"+e);
+//                        e.printStackTrace();
+                    }
+
+                // 不限制执行时间
 //					try {
 ////						System.out.print(regex + "\n");
 ////						Pattern p = Pattern.compile(regex);
@@ -127,80 +157,26 @@ public class RedosTester {
 //						e.printStackTrace();
 //					}
 
-                    //无关
-                    cnt += 1;
+                //无关
+                cnt += 1;
 //                    if(cnt%500==0)System.out.println(cnt);
 //                    else if(cnt>2500 && cnt%100==0)System.out.println(cnt);
 //                    else if(cnt>2700 && cnt%10==0)
-                    System.out.println(cnt);
+//                System.out.println(cnt);
 
 //                    if(cnt%100==0)System.out.println(cnt);
-                }
-
-                inputStream.close();
-                bufferedReader.close();
             }
-            outVul.flush();
-            outVul.close();
-
+            exec.shutdown();
+            inputStream.close();
+            bufferedReader.close();
         }
+        outVul.flush();
+        outVul.close();
+
+    }
         System.out.print("finished\n");
-    }
+}
 
-
-    public static class InterruptTest {
-        public String getResult(String regex, int cnt) {
-            ExecutorService executorService = Executors.newSingleThreadExecutor();
-//            FutureTask<String> future = new FutureTask<String>(new Callable<String>() {
-//                public String call() throws Exception {
-//                    InterruptTest interrupt = new InterruptTest();
-//                    return interrupt.getValue(regex, cnt);
-//                }
-//            });
-            FutureTask<String> future = new FutureTask<String>(new Callable<String>() {
-                public String call() throws Exception {
-                    InterruptTest interrupt = new InterruptTest();
-                    return interrupt.getValue(regex, cnt);
-                }
-            });
-
-            executorService.execute(future);
-
-            String result = null;
-            try {
-                //设定超时的时间范围为10秒
-                result = future.get(1, TimeUnit.SECONDS);
-                executorService.shutdownNow();
-            } catch (InterruptedException e) {
-                future.cancel(true);
-                executorService.shutdownNow();
-                System.out.println("方法执行中断:" + cnt);
-            } catch (ExecutionException e) {
-                future.cancel(true);
-                executorService.shutdownNow();
-                System.out.println("Excution异常" + cnt);
-            } catch (TimeoutException e) {
-                future.cancel(true);
-                executorService.shutdownNow();
-                System.out.println("方法执行时间超时" + cnt);
-                result = "方法执行时间超时";
-            }
-
-            executorService.shutdownNow();
-            return result;
-        }
-
-        public String getValue(String regex, int cnt) {
-            try {
-                testSingleRegexDIY(regex);
-//                System.out.println("正常执行");
-            } catch (Exception e) {
-                System.out.println("getValue错误:" + cnt + "\n" + e);
-                e.printStackTrace();
-            }
-            return "正常结果";
-        }
-    }
 
     public static void testSingleRegexDIY(String regex) throws Exception {
         int max_length = 128;
