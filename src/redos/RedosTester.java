@@ -209,8 +209,13 @@ public class RedosTester {
 //                Matcher m = p.matcher(attack_string.toString(), new Trace(threshold, false));
                 Matcher m = p.matcher(vul.prefix.toString() + pump_string.toString() + vul.suffix.toString(), new Trace(threshold, false));
                 Trace t = m.find();
+                m.matches();//poA\EOD\EOA\NP
+
+                //TODO:改的灵活一点
+
 
 //				System.out.print(t.getMatchSteps() + "\n");
+//                System.out.println("step:"+t.getMatchSteps());
                 if (t.getMatchSteps() > 1e5) {
 //                    outVul.write(regex + "\n");
 //                    outVul.write("Can be attacked");
@@ -230,7 +235,8 @@ public class RedosTester {
 
     public static void main(String[] args) throws Exception {
 //        RedosTester.testSingleRegexDIY("zxc(abc)*bc(abc)*zxc");
-        RedosTester.testSingleRegexDIY("^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+(?:[a-zA-Z]{2}|aero|asia|biz|cat|com|coop|edu|gov|info|int|jobs|mil|mobi|museum|name|net|org|pro|tel|travel)$");
+//        RedosTester.testSingleRegexDIY("^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+(?:[a-zA-Z]{2}|aero|asia|biz|cat|com|coop|edu|gov|info|int|jobs|mil|mobi|museum|name|net|org|pro|tel|travel)$");
+        RedosTester.testSingleRegexDIY("a+b");
 //        RedosTester.testDataset();
     }
 
