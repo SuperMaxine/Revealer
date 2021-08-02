@@ -6133,6 +6133,9 @@ public final class Pattern implements java.io.Serializable {
         return 1;
     }
 
+    /**
+    * 用来检查节点是否含有真实的字符，默认会顺着sub_next追查下去，如果sub为true的话也会顺着direct_next追查下去
+    */
     public boolean checkSlice(Node node, boolean sub) {
         if (node == null || node.self == "?" || node instanceof Neg || node instanceof NotBehind || node instanceof Pos
                 || node instanceof Behind)

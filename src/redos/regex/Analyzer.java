@@ -281,9 +281,7 @@ public class Analyzer {
                     pushForward(null, map.get(null));
                     getNextSlices(startGenerator);
                     return;
-                }
-
-                else {
+                } else {
                     nextSlices = new HashSet<Triplet<Driver, Node, MatchGenerator>>();
 
                     for (Node node : map.keySet()) {
@@ -566,13 +564,13 @@ public class Analyzer {
             }
 
             private MatchGenerator buildGenerators(Node node, MatchGenerator lastGeneratorTmp, boolean sub,
-                    Node next_node) {
+                                                   Node next_node) {
                 Node lastNode = lastGeneratorTmp.curNode;
                 MatchGenerator nextGenerator = lastGeneratorTmp;
 
                 if (node.sub_next != null || (node.new_atoms != null && next_node != null) || pattern.isSlice(node)) { // cur
-                                                                                                                       // is
-                                                                                                                       // meaningful
+                    // is
+                    // meaningful
                     if (allGenerators == null)
                         allGenerators = new HashMap<Node, MatchGenerator>();
                     MatchGenerator newGenerator = new MatchGenerator(node);
@@ -593,9 +591,7 @@ public class Analyzer {
                         if (p == null || p == lastNode.direct_next) {
                             if (pattern.isSlice(node)) { // last generator is slice type
                                 lastGeneratorTmp.addMendatoryCase(node, newGenerator);
-                            }
-
-                            else { // equal to its next
+                            } else { // equal to its next
                                 lastGeneratorTmp.addMendatoryCase(null, newGenerator);
                             }
 
@@ -603,23 +599,17 @@ public class Analyzer {
                                 || lastNode.new_atoms != null && Arrays.asList(lastNode.new_atoms).contains(p)) {
                             if (pattern.isSlice(node)) { // last generator is slice type
                                 lastGeneratorTmp.addUnsatisfiedCase(node, newGenerator);
-                            }
-
-                            else { // equal to its next
+                            } else { // equal to its next
                                 lastGeneratorTmp.addUnsatisfiedCase(null, newGenerator);
                             }
 
                         } else { // TODO : backref condition
 
                         }
-                    }
-
-                    else { // the begin Generator
+                    } else { // the begin Generator
                         if (pattern.isSlice(node)) { // last generator is slice type
                             lastGeneratorTmp.addMendatoryCase(node, newGenerator);
-                        }
-
-                        else { // equal to its next
+                        } else { // equal to its next
                             lastGeneratorTmp.addMendatoryCase(null, newGenerator);
                         }
                     }
@@ -657,9 +647,7 @@ public class Analyzer {
                         nextGenerator.nextSliceSetMendatory = nextGenerator.nextSliceSetSatisfied;
                         nextGenerator.min = 0;
                     }
-                }
-
-                else if (node.new_atoms != null && next_node != null) {
+                } else if (node.new_atoms != null && next_node != null) {
                     if (next_node.self != "BranchEnd") {
                         if (sub)
                             buildGenerators(next_node, nextGenerator, true, next_node.direct_next);
@@ -690,6 +678,7 @@ public class Analyzer {
             path.remove(0);
             path.remove(path.size() - 1);
             if (path.size() > 0)
+                // 如果除了起止节点还有别的东西的话，把中间这些东西通过addPath，检查是否存在实际字符，存在的话加入pathSharing
                 addPath(path, true);
             switch (type) {
                 case LOOP_IN_LOOP:
@@ -707,6 +696,7 @@ public class Analyzer {
                     suffixHead = path_start;
                     break;
                 case LOOP_AFTER_LOOP:
+                    // 把头和尾字串中的内容也过一遍addPath，看看有没有必要加入pathSharing
                     addPath(getDirectPath(path_start.sub_next), false);
                     addPath(getDirectPath(path_end.sub_next), false);
                     suffixHead = path_end;
@@ -735,7 +725,7 @@ public class Analyzer {
         }
 
         private Set<Driver> getNewOption(Map<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>> optionMap,
-                int ch) {
+                                         int ch) {
             String sliceRemain = null;
             Driver driverRemain = null;
             Set<Driver> newDriverSet = new HashSet<Driver>();
@@ -852,7 +842,7 @@ public class Analyzer {
                 }
                 newBranch.new_atoms = tmp.toArray(new Node[tmp.size()]);
             } else
-                newBranch.new_atoms = new Node[] { curAtom };
+                newBranch.new_atoms = new Node[]{curAtom};
             MatchGenerator branch = branchEngine.buildGenerators(newBranch, branchEngine.headGenerator, false,
                     newBranch.direct_next);
             branchEngine.directedPath.add(newBranch);
@@ -875,7 +865,7 @@ public class Analyzer {
                 DirectedEngine secondChoiceEngine = null;
                 DirectedEngine suffixEngine = null;
 
-                for (Iterator<DirectedEngine> i = engineSet.iterator(); i.hasNext();) {
+                for (Iterator<DirectedEngine> i = engineSet.iterator(); i.hasNext(); ) {
                     DirectedEngine engine = i.next();
                     if (path_end.direct_next == engine.directedPath.get(0)) {
                         suffixEngine = engine;
@@ -906,12 +896,10 @@ public class Analyzer {
                     engineSet.add(prefixEngine);
                     engineSet.add(prefixEngineCopy);
                 }
-            }
-
-            else if (type == VulType.LOOP_IN_LOOP || (type == VulType.BRANCH_IN_LOOP && path_end.self == "?")) {
+            } else if (type == VulType.LOOP_IN_LOOP || (type == VulType.BRANCH_IN_LOOP && path_end.self == "?")) {
                 DirectedEngine prefixEngine = null;
                 DirectedEngine suffixEngine = null;
-                for (Iterator<DirectedEngine> i = engineSet.iterator(); i.hasNext();) {
+                for (Iterator<DirectedEngine> i = engineSet.iterator(); i.hasNext(); ) {
                     DirectedEngine engine = i.next();
                     i.remove();
                     if (path_end.sub_next == engine.directedPath.get(0) || (path_end.new_atoms != null
@@ -1115,26 +1103,37 @@ public class Analyzer {
             return matching;
         }
 
+        /**
+         * hide 用作区分是否需要确认节点中有没有含有真实地字符，如果hide为false则默认tmpPath中有内容，直接加入pathSharing
+         */
         public void addPath(ArrayList<Node> tmpPath, boolean hide) {
             if (hide) {
                 for (int i = 0; i < tmpPath.size(); i++) {
                     Node node = tmpPath.get(i);
                     Node next_node = null;
+                    // 如果不是是最后一个节点， 就把下一个节点放入next_node
                     if (i < tmpPath.size() - 1)
                         next_node = tmpPath.get(i + 1);
+                    // 如果是最后一个节点，一般不做处理，任由next_node空着
+                    // 但是如果tmpPath就是整个Vul的path，则把path_end作为next_node
                     else if (tmpPath == path)
                         next_node = path_end;
+
+                    // 如果路径中存在next_node且next_node是当前节点的sub_next则继续——对应各种循环节点
                     if (next_node != null && node.sub_next == next_node)
                         continue;
+                    // 如果路径中存在next_node且next_node是当前节点的分支中的某一条则继续——对应Branch
                     if (next_node != null && node.new_atoms != null
                             && Arrays.asList(node.new_atoms).contains(next_node))
                         continue;
+                    // 如果节点中含有字符的话，将路径加入pathSharing并跳出循环
                     if (pattern.checkSlice(node, false)) {
                         pathSharing.add(tmpPath);
                         break;
                     }
                 }
             } else
+                // 默认传入的tmpPath中有内容，直接加入pathSharing
                 pathSharing.add(tmpPath);
         }
 
@@ -1437,7 +1436,7 @@ public class Analyzer {
             getPathFromLoop(node.direct_next, curr_path, direct);
         } else if (node instanceof Ques && !direct) {
             branchInLoop.add(curr_path);
-            node.new_atoms = new Node[] { node.atom };
+            node.new_atoms = new Node[]{node.atom};
             getPathFromLoop(node.direct_next, curr_path, direct);
         } else if (node.direct_next != null)
             getPathFromLoop(node.direct_next, curr_path, direct);
@@ -1446,7 +1445,7 @@ public class Analyzer {
     }
 
     private void removeInvalidLoop() {
-        for (Iterator<Node> i = loopNodes.iterator(); i.hasNext();) {
+        for (Iterator<Node> i = loopNodes.iterator(); i.hasNext(); ) {
             Node element = i.next();
             if (pattern.lengthExceed(element, maxLength))
                 i.remove();
