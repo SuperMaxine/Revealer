@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.concurrent.*;
 
 import com.alibaba.fastjson.JSONObject;
 
@@ -108,23 +109,43 @@ public class RedosTester {
                 int max_length = 128;
                 double threshold = 1e5;
                 int cnt = 0;
+                // 线程池写法，使用一个16线程的线程池
+                ExecutorService exec = Executors.newFixedThreadPool(16);
                 while ((regex = bufferedReader.readLine()) != null) {
 //                    System.out.println(regex);
 
-                    // 限制任务执行时间
-//                    Thread method = new Thread(new ThreadMethod(regex, outVul));
-                    Thread method = new Thread(new ThreadMethod(regex));
-                    //调用方法
-                    method.start();
-                    try {
-                        method.join(1000);//规定业务接口执行不能超过的时长
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    method.interrupt();//调用中断很重要，如果不调用的话，就会回到上面说的，两个线程并发执行，就起不到效果了。
-                    method = null;
+                    // 限制执行时间
+//                    new InterruptTest().getResult(regex, cnt);
+//                    es.submit(new Task(regex));
+                    String finalRegex = regex;
+                    Callable<String> call = new Callable<String>() {
+                        public String call() throws Exception {
+                            //开始执行耗时操作
+                            testSingleRegexDIY(finalRegex);
+                            return "线程执行完成.";
+                        }
 
-                    // 不限制执行时间
+                    };
+
+                    Future<String> future = exec.submit(call);
+                    try {
+                        String obj = future.get(3, TimeUnit.SECONDS); //任务处理超时时间设为 1 秒
+                        System.out.println("Success:"+cnt);
+                    } catch (InterruptedException e) {
+                        future.cancel(true);
+                        System.out.println("方法执行中断:"+cnt+"\n"+e);
+//                        e.printStackTrace();
+                    } catch (ExecutionException e){
+                        future.cancel(true);
+                        System.out.println("Execution异常:"+cnt+"\n"+e);
+//                        e.printStackTrace();
+                    } catch (TimeoutException e){
+                        future.cancel(true);
+                        System.out.println("方法执行时间超时:"+cnt+"\n"+e);
+//                        e.printStackTrace();
+                    }
+
+                // 不限制执行时间
 //					try {
 ////						System.out.print(regex + "\n");
 ////						Pattern p = Pattern.compile(regex);
@@ -136,39 +157,23 @@ public class RedosTester {
 //						e.printStackTrace();
 //					}
 
-                    //无关
-                    cnt += 1;
-                    if(cnt%500==0)System.out.println(cnt);
+                //无关
+                cnt += 1;
+//                    if(cnt%500==0)System.out.println(cnt);
 //                    else if(cnt>2500 && cnt%100==0)System.out.println(cnt);
-                    else if(cnt>2700 && cnt%10==0)System.out.println(cnt);
+//                    else if(cnt>2700 && cnt%10==0)
+//                System.out.println(cnt);
 
 //                    if(cnt%100==0)System.out.println(cnt);
-                }
-
-                inputStream.close();
-                bufferedReader.close();
             }
-            outVul.flush();
-            outVul.close();
-
+            exec.shutdown();
+            inputStream.close();
+            bufferedReader.close();
         }
-        System.out.print("finished\n");
-    }
+        outVul.flush();
+        outVul.close();
 
-    static class ThreadMethod implements Runnable {
-        private String regex;
-//        private BufferedWriter outVul;
-
-        public ThreadMethod(String regex, BufferedWriter outVul) {
-            this.regex = regex;
-//            this.outVul = outVul;
-        }
-
-        public ThreadMethod(String regex) {
-            this.regex = regex;
-//            this.outVul = outVul;
-        }
-
+<<<<<<< HEAD
         @Override
         public void run() {
             try {
@@ -187,7 +192,12 @@ public class RedosTester {
                 return;
             }
         }
+=======
+>>>>>>> ecd20b01c8f5424eee31e7d9153a8aa03a2ef609
     }
+        System.out.print("finished\n");
+}
+
 
     public static void testSingleRegexDIY(String regex) throws Exception {
         int max_length = 128;
@@ -211,8 +221,8 @@ public class RedosTester {
 //            attack_string.append(vul.suffix);
 ////			System.out.print(attack_string+"\n");
             StringBuffer pump_string = new StringBuffer();
-            int Len = 100;
-            while(pump_string.length()<Len){
+            int Len = vul.typeDIY == Analyzer.VulTypeDIY.POA ? 10000 : 100;
+            while (pump_string.length() < Len) {
                 pump_string.append(vul.pump);
             }
             try {
@@ -220,17 +230,22 @@ public class RedosTester {
 //                Matcher m = p.matcher(attack_string.toString(), new Trace(threshold, false));
                 Matcher m = p.matcher(vul.prefix.toString() + pump_string.toString() + vul.suffix.toString(), new Trace(threshold, false));
                 Trace t = m.find();
+                m.matches();//poA\EOD\EOA\NP
+
+                //TODO:改的灵活一点
+
 
 //				System.out.print(t.getMatchSteps() + "\n");
+//                System.out.println("step:"+t.getMatchSteps());
                 if (t.getMatchSteps() > 1e5) {
 //                    outVul.write(regex + "\n");
 //                    outVul.write("Can be attacked");
-//                    System.out.println("Can be attacked:"+regex);
+                    System.out.println("Can be attacked:" + regex);
                     break;
                 }
             } catch (Exception e) {
 //                System.out.print("0\n");
-                System.out.println("Run Failed:"+regex);
+                System.out.println("Run Failed:" + regex);
                 e.printStackTrace();
                 break;
 //                System.out.println(e);
@@ -240,6 +255,7 @@ public class RedosTester {
     }
 
     public static void main(String[] args) throws Exception {
+<<<<<<< HEAD
 //		if (args.length == 1)
 ////			RedosTester.testSingleRegex(args[0]);
 ////			RedosTester.testSingleRegex("^(((a*a*)c)\\d)+$");
@@ -259,6 +275,11 @@ public class RedosTester {
 //		else if (args.length == 2)
 //			RedosTester.vulValidation(args[0], args[1]);
 //		else
+=======
+//        RedosTester.testSingleRegexDIY("zxc(abc)*bc(abc)*zxc");
+//        RedosTester.testSingleRegexDIY("^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+(?:[a-zA-Z]{2}|aero|asia|biz|cat|com|coop|edu|gov|info|int|jobs|mil|mobi|museum|name|net|org|pro|tel|travel)$");
+        RedosTester.testSingleRegexDIY("a+b");
+>>>>>>> ecd20b01c8f5424eee31e7d9153a8aa03a2ef609
 //        RedosTester.testDataset();
     }
 
