@@ -6020,6 +6020,52 @@ public final class Pattern implements java.io.Serializable {
         return result;
     }
 
+    public Set<Integer> getMatchSetDIY(Node node) {
+        Set<Integer> result = new HashSet<Integer>();
+        if (node instanceof SliceNode) {
+            String str = ((SliceNode) node).getSliceBuffer();
+            if (str.length() == 0)
+                return null;
+            result.add((int) str.charAt(0));
+        } else if (node instanceof BnM) {
+            String str = ((BnM) node).getSliceBuffer();
+            if (str.length() == 0)
+                return null;
+            result.add((int) str.charAt(0));
+        } else if(node instanceof Dot){
+            result.add(-1);
+        } else if(node instanceof CharProperty){
+            CharProperty charNode = (CharProperty) node;
+            if (charNode.charSet.size() > 0)
+                result.addAll(charNode.charSet);
+            if (charNode.charSet.size() == 0 || charNode.except) {
+                for (int ch : fullCharSet) {
+                    if (charNode.isSatisfiedBy(ch))
+                        result.add(ch);
+                }
+                charNode.charSet.addAll(result);
+                charNode.except = false;
+            }
+        } else {
+            result.add(-2);
+        }
+        // 符合lookahead约束
+        Node p = node.direct_parent;
+        if (p == null)
+            p = getDirectParent(node);
+        if (p.direct_prev instanceof Neg) {
+            Set<Integer> negResult = getFirstMatchSet(p.direct_prev.sub_next);
+            if (negResult != null) {
+                result.removeAll(negResult);
+                if (node instanceof CharProperty) {
+                    CharProperty charNode = (CharProperty) node;
+                    charNode.charSet.removeAll(negResult);
+                }
+            }
+        }
+        return result;
+    }
+
     public Node getDirectParent(Node node) {
         Node p = node;
         while (p.direct_prev != null) {

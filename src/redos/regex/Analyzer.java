@@ -39,6 +39,7 @@ public class Analyzer {
     private class VulStructure {
         StringBuffer prefix;
         StringBuffer pump;
+        ArrayList<Set<Integer>> pumpSet;
         StringBuffer suffix;
         Driver suffixDriver = null;
         ArrayList<ArrayList<Node>> pathSharing;
@@ -722,7 +723,7 @@ public class Analyzer {
                 case LOOP_AFTER_LOOP:
                     // 把头和尾子串中的内容也过一遍addPath，看看有没有必要加入pathSharing
                     addPath(getDirectPath(path_start.sub_next), false);
-                    addPath(getDirectPath(path_end.sub_next), false);
+                    // addPath(getDirectPath(path_end.sub_next), false);
                     suffixHead = path_end;
                     break;
             }
@@ -986,6 +987,17 @@ public class Analyzer {
             return engineSet;
         }
 
+        private ArrayList<Set<Integer>> getPumpSet(){
+            System.out.println(pathSharing);
+            ArrayList<Set<Integer>> resultSet = new ArrayList<>();
+            for(Pattern.Node node : pathSharing.get(0)){
+                resultSet.add(pattern.getMatchSetDIY(node));
+            }
+            // 清除空集合
+            resultSet.removeIf(t -> t.contains(-2));
+            return resultSet;
+        }
+
         private String getPump() {
             // 除了LOOP_IN_LOOP和BRANCH_IN_LOOP，一般都是给pathSharing中的每个path配一个engineSet
             Set<DirectedEngine> engineSet = getEngineSet();
@@ -1005,6 +1017,9 @@ public class Analyzer {
             int size = 1;
 
             String result = null;
+            // 记录Set序列
+            Map<Driver, ArrayList<Set<Integer>>> pumpSet = new HashMap<>();
+            ArrayList<Set<Integer>> pumpSetList = new ArrayList<Set<Integer>>();
 
             for (int i = 0; i < size; i++) {
                 Set<Driver> option = setOfOptions.get(i);
@@ -1054,6 +1069,7 @@ public class Analyzer {
                             if (driver.nextCharSetMap.get(triplet).size() == 0)
                                 driver.nextSlices.remove(triplet);
                         }
+                        // 新建lastOption
                         if (lastOptions == null) {
                             lastOptions = new HashSet<Map<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>>>();
                             for (Triplet<Driver, Node, MatchGenerator> triplet : driver.nextSlices) {
@@ -1062,8 +1078,14 @@ public class Analyzer {
                                 Map<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>> newMap = new HashMap<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>>();
                                 newMap.put(driver, triplet.addAt3(driver.nextCharSetMap.get(triplet)));
                                 lastOptions.add(newMap);
+
+                                // // 新建pumpSet元素
+                                // ArrayList<Set<Integer>> newSetList = new ArrayList<Set<Integer>>();
+                                // newSetList.add(driver.nextCharSetMap.get(triplet));
+                                // pumpSet.put(driver, newSetList);
                             }
                         }
+                        // 已有上一代，生成新一代lastOption
                         else {
                             Set<Map<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>>> newOptions = new HashSet<Map<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>>>();
                             for (Map<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>> lastMap : lastOptions) {
@@ -1074,14 +1096,26 @@ public class Analyzer {
                                     newMap.putAll(lastMap);
                                     newMap.put(driver, triplet.addAt3(driver.nextCharSetMap.get(triplet)));
                                     newOptions.add(newMap);
+
+                                    // // 向pumpSet中记录
+                                    // if(pumpSet.containsKey(driver))
+                                    //     pumpSet.get(driver).add(driver.nextCharSetMap.get(triplet));
+                                    // else {
+                                    //     // 新建pumpSet元素
+                                    //     ArrayList<Set<Integer>> newSetList = new ArrayList<Set<Integer>>();
+                                    //     newSetList.add(driver.nextCharSetMap.get(triplet));
+                                    //     pumpSet.put(driver, newSetList);
+                                    // }
                                 }
                             }
                             lastOptions = newOptions;
                         }
                     }
 
+                    // 推进新的Option
                     for (Map<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>> optionMap : lastOptions) {
                         Set<Integer> charSet = null;
+                        // 对下一个字符求交集
                         for (Driver driver : optionMap.keySet()) {
                             if (charSet == null) {
                                 charSet = new HashSet<Integer>();
@@ -1092,13 +1126,29 @@ public class Analyzer {
                             if (charSet.size() == 0)
                                 break;
                         }
+
+                        // 如果交集为空，则不再推进
                         if (charSet.size() == 0)
                             continue;
+                        // 如果交集不为空加入，创建新一轮的Option迭代
                         else {
                             Set<Driver> newOption = getNewOption(optionMap, charSet.iterator().next());
                             if (newOption != null) {
                                 setOfOptions.add(newOption);
                                 size += 1;
+                            }
+
+                            // 向pumpSet中记录
+                            pumpSetList.add(charSet);
+                            for(Driver driver : optionMap.keySet()){
+                                if(pumpSet.containsKey(driver))
+                                    pumpSet.get(driver).add(charSet);
+                                else {
+                                    // 新建pumpSet元素
+                                    ArrayList<Set<Integer>> newSetList = new ArrayList<Set<Integer>>();
+                                    newSetList.add(charSet);
+                                    pumpSet.put(driver, newSetList);
+                                }
                             }
                         }
                     }
@@ -1137,6 +1187,11 @@ public class Analyzer {
                     pumpStr = getShortestMatching(pathSharing.get(0));
                 else
                     pumpStr = getPump();
+
+                ArrayList<Set<Integer>> pumpSetTmp = new ArrayList<>();
+                pumpSetTmp = getPumpSet();
+                pumpSet.addAll(pumpSetTmp);
+
                 if (pumpStr != null && pumpStr.length() > 0) {
                     pump.append(pumpStr);
                     prefix.append(getPrefix());
@@ -1219,6 +1274,7 @@ public class Analyzer {
         private void initialize() {
             prefix = new StringBuffer();
             pump = new StringBuffer();
+            pumpSet = new ArrayList<>();
             suffix = new StringBuffer();
             pathSharing = new ArrayList<ArrayList<Node>>();
             fullPath = new ArrayList<Node>();
