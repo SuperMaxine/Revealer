@@ -65,7 +65,8 @@ public class Analyzer {
                 if (node == null) {
                     min = 0;
                     max = 0;
-                } else {
+                }
+                else {
                     min = pattern.getMinCount(node);
                     max = pattern.getMaxCount(node);
                     if (max > 10)
@@ -155,7 +156,8 @@ public class Analyzer {
                     newDriver.pushForward(null, curGenerator.nextSliceSetSatisfied.get(null));
                     if (newDriver.driverSatisfied())
                         return true;
-                } else if (getState() == CurState.ONLEAVE && hasNext(CurState.ONLEAVE)
+                }
+                else if (getState() == CurState.ONLEAVE && hasNext(CurState.ONLEAVE)
                         && curGenerator.nextSliceSetMendatory.containsKey(null)) {
                     Driver newDriver = new Driver(this);
                     newDriver.pushForward(null, curGenerator.nextSliceSetMendatory.get(null));
@@ -222,7 +224,8 @@ public class Analyzer {
                 if (curCntSet.containsKey(nextGenerator) && isEnd) { // update curCntSet using isEnd
                     lastCnt = curCntSet.get(nextGenerator);
                     curCntSet.put(nextGenerator, lastCnt + 1);
-                } else
+                }
+                else
                     curCntSet.put(nextGenerator, lastCnt);
                 if (pattern.isSlice(sliceNode)) // upadate matching path
                     matchingPath.append(pattern.getSlice(sliceNode));
@@ -249,7 +252,8 @@ public class Analyzer {
                 if (curCntSet.containsKey(nextGenerator) && isEnd) { // update curCntSet using isEnd
                     lastCnt = curCntSet.get(nextGenerator);
                     curCntSet.put(nextGenerator, lastCnt + 1);
-                } else if (sliceNode != null || isEnd)
+                }
+                else if (sliceNode != null || isEnd)
                     curCntSet.put(nextGenerator, lastCnt + 1);
                 else
                     curCntSet.put(nextGenerator, lastCnt);
@@ -281,7 +285,8 @@ public class Analyzer {
                     pushForward(null, map.get(null));
                     getNextSlices(startGenerator);
                     return;
-                } else {
+                }
+                else {
                     nextSlices = new HashSet<Triplet<Driver, Node, MatchGenerator>>();
 
                     for (Node node : map.keySet()) {
@@ -293,7 +298,8 @@ public class Analyzer {
                             Set<Triplet<Driver, Node, MatchGenerator>> additionalSlice = newDriver.nextSlices;
                             if (additionalSlice != null)
                                 nextSlices.addAll(additionalSlice);
-                        } else if (node != null) {
+                        }
+                        else if (node != null) {
                             Triplet<Driver, Node, MatchGenerator> triplet = new Triplet<Driver, Node, MatchGenerator>(
                                     this, node, map.get(node));
                             nextSlices.add(triplet);
@@ -305,22 +311,28 @@ public class Analyzer {
             public void getNextSlices() {
                 if (getState() == CurState.UNSATISFIED && hasNext(CurState.UNSATISFIED)) {
                     update(curGenerator.nextSliceSetUnsatisfied, null);
-                } else if (getState() == CurState.ONLEAVE && hasNext(CurState.ONLEAVE)) {
+                }
+                else if (getState() == CurState.ONLEAVE && hasNext(CurState.ONLEAVE)) {
                     update(curGenerator.nextSliceSetMendatory, null);
-                } else if (getState() == CurState.SATISFIED && hasNext(CurState.SATISFIED)) {
+                }
+                else if (getState() == CurState.SATISFIED && hasNext(CurState.SATISFIED)) {
                     update(curGenerator.nextSliceSetSatisfied, null);
-                } else
+                }
+                else
                     nextSlices = null;
             }
 
             public void getNextSlices(MatchGenerator startGenerator) {
                 if (getState() == CurState.UNSATISFIED && hasNext(CurState.UNSATISFIED)) {
                     update(curGenerator.nextSliceSetUnsatisfied, startGenerator);
-                } else if (getState() == CurState.ONLEAVE && hasNext(CurState.ONLEAVE)) {
+                }
+                else if (getState() == CurState.ONLEAVE && hasNext(CurState.ONLEAVE)) {
                     update(curGenerator.nextSliceSetMendatory, startGenerator);
-                } else if (getState() == CurState.SATISFIED && hasNext(CurState.SATISFIED)) {
+                }
+                else if (getState() == CurState.SATISFIED && hasNext(CurState.SATISFIED)) {
                     update(curGenerator.nextSliceSetSatisfied, startGenerator);
-                } else
+                }
+                else
                     nextSlices = null;
             }
 
@@ -359,7 +371,8 @@ public class Analyzer {
                     if (failedCore != null) {
                         failedMatch = driver.matchingPath.toString() + failedCore;
                         break;
-                    } else {
+                    }
+                    else {
                         for (Triplet<Driver, Node, MatchGenerator> triplet : nextSlices) {
                             Driver curDriver = triplet.getValue0();
                             curDriver.pushForward(triplet.getValue1(), triplet.getValue2());
@@ -503,7 +516,8 @@ public class Analyzer {
                 if (nextEngine.finalGenerator != null) {
                     nextEngine.finalGenerator.addMendatoryCase(null, headGenerator);
                     finalGenerator = nextEngine.finalGenerator;
-                } else {
+                }
+                else {
                     if (nextEngine.index < nextEngine.directedPath.size())
                         directedPath.addAll(nextEngine.directedPath);
                     index = index + nextEngine.index;
@@ -552,10 +566,12 @@ public class Analyzer {
                     if (driver.getState() == CurState.UNSATISFIED) {
                         if (driver.hasNext(CurState.UNSATISFIED)) {
                             driver.pushAny(CurState.UNSATISFIED);
-                        } else {
+                        }
+                        else {
                             driver.cntIncrease();
                         }
-                    } else {
+                    }
+                    else {
                         driver.pushAny(CurState.ONLEAVE);
                     }
                 }
@@ -591,25 +607,31 @@ public class Analyzer {
                         if (p == null || p == lastNode.direct_next) {
                             if (pattern.isSlice(node)) { // last generator is slice type
                                 lastGeneratorTmp.addMendatoryCase(node, newGenerator);
-                            } else { // equal to its next
+                            }
+                            else { // equal to its next
                                 lastGeneratorTmp.addMendatoryCase(null, newGenerator);
                             }
 
-                        } else if (p == lastNode.sub_next
+                        }
+                        else if (p == lastNode.sub_next
                                 || lastNode.new_atoms != null && Arrays.asList(lastNode.new_atoms).contains(p)) {
                             if (pattern.isSlice(node)) { // last generator is slice type
                                 lastGeneratorTmp.addUnsatisfiedCase(node, newGenerator);
-                            } else { // equal to its next
+                            }
+                            else { // equal to its next
                                 lastGeneratorTmp.addUnsatisfiedCase(null, newGenerator);
                             }
 
-                        } else { // TODO : backref condition
+                        }
+                        else { // TODO : backref condition
 
                         }
-                    } else { // the begin Generator
+                    }
+                    else { // the begin Generator
                         if (pattern.isSlice(node)) { // last generator is slice type
                             lastGeneratorTmp.addMendatoryCase(node, newGenerator);
-                        } else { // equal to its next
+                        }
+                        else { // equal to its next
                             lastGeneratorTmp.addMendatoryCase(null, newGenerator);
                         }
                     }
@@ -647,7 +669,8 @@ public class Analyzer {
                         nextGenerator.nextSliceSetMendatory = nextGenerator.nextSliceSetSatisfied;
                         nextGenerator.min = 0;
                     }
-                } else if (node.new_atoms != null && next_node != null) {
+                }
+                else if (node.new_atoms != null && next_node != null) {
                     if (next_node.self != "BranchEnd") {
                         if (sub)
                             buildGenerators(next_node, nextGenerator, true, next_node.direct_next);
@@ -655,7 +678,8 @@ public class Analyzer {
                             buildGenerators(next_node, nextGenerator, true, null);
                         nextGenerator.nextSliceSetMendatory = nextGenerator.nextSliceSetSatisfied;
                         nextGenerator.min = 0;
-                    } else {
+                    }
+                    else {
                         for (Node atom : node.new_atoms) {
                             buildGenerators(atom, nextGenerator, true, atom.direct_next);
                         }
@@ -696,7 +720,7 @@ public class Analyzer {
                     suffixHead = path_start;
                     break;
                 case LOOP_AFTER_LOOP:
-                    // 把头和尾字串中的内容也过一遍addPath，看看有没有必要加入pathSharing
+                    // 把头和尾子串中的内容也过一遍addPath，看看有没有必要加入pathSharing
                     addPath(getDirectPath(path_start.sub_next), false);
                     addPath(getDirectPath(path_end.sub_next), false);
                     suffixHead = path_end;
@@ -746,17 +770,21 @@ public class Analyzer {
                     if (sliceRemain == null) {
                         sliceRemain = str;
                         driverRemain = newDriver;
-                    } else if (sliceRemain.length() > str.length()
+                    }
+                    else if (sliceRemain.length() > str.length()
                             && sliceRemain.substring(0, str.length()).equals(str)) {
                         sliceRemain = sliceRemain.substring(str.length());
                         nonSliceDriver.add(newDriver);
-                    } else if (sliceRemain.length() < str.length()
+                    }
+                    else if (sliceRemain.length() < str.length()
                             && sliceRemain.equals(str.substring(0, sliceRemain.length()))) {
                         sliceRemain = str.substring(sliceRemain.length());
                         nonSliceDriver.add(driverRemain);
-                    } else if (!sliceRemain.equals(str))
+                    }
+                    else if (!sliceRemain.equals(str))
                         return null;
-                } else
+                }
+                else
                     nonSliceDriver.add(newDriver);
                 newDriverSet.add(newDriver);
             }
@@ -793,17 +821,20 @@ public class Analyzer {
                         if (str.length() == 1) {
                             driver.setAs(newDriver);
                             return true;
-                        } else {
+                        }
+                        else {
                             newDriver.getNextSlices();
                             if (pushSliceToSatisfied(newDriver, str.substring(1))) {
                                 driver.setAs(newDriver);
                                 return true;
                             }
                         }
-                    } else if (remainStr.equals(str.substring(1))) {
+                    }
+                    else if (remainStr.equals(str.substring(1))) {
                         driver.setAs(newDriver);
                         return true;
-                    } else if (str.length() > 1 + remainStr.length()
+                    }
+                    else if (str.length() > 1 + remainStr.length()
                             && str.substring(1, 1 + remainStr.length()) == remainStr) {
                         newDriver.getNextSlices();
                         if (str.substring(1).startsWith(remainStr)
@@ -831,6 +862,9 @@ public class Analyzer {
             return loopEngine;
         }
 
+        // exclude表示返回的DirectEngine是否只包含其他分支节点
+        // irstChoiceEngine -> exclude = fruef
+        // secondChoiceEngine -> exclude = false
         private DirectedEngine getBranchEngine(boolean exclude) {
             DirectedEngine branchEngine = new DirectedEngine();
             Node newBranch = ((Branch) path_end).getNewBranch();
@@ -841,7 +875,8 @@ public class Analyzer {
                         tmp.add(a);
                 }
                 newBranch.new_atoms = tmp.toArray(new Node[tmp.size()]);
-            } else
+            }
+            else
                 newBranch.new_atoms = new Node[]{curAtom};
             MatchGenerator branch = branchEngine.buildGenerators(newBranch, branchEngine.headGenerator, false,
                     newBranch.direct_next);
@@ -854,38 +889,47 @@ public class Analyzer {
 
         private Set<DirectedEngine> getEngineSet() {
             Set<DirectedEngine> engineSet = new HashSet<DirectedEngine>();
+            // 对pathSharing中每条Path新建一个DirectEngine
             for (ArrayList<Node> tmpPath : pathSharing) {
                 ArrayList<Node> pathCopy = new ArrayList<Node>(tmpPath);
                 engineSet.add(new DirectedEngine(pathCopy, false));
             }
-
+            // 对Branch in loop攻击类型，（猜测）pathSharing中只会有前缀path和后缀path
             if (type == VulType.BRANCH_IN_LOOP && path_end.self == "|") {
                 DirectedEngine prefixEngine = null;
                 DirectedEngine firstChoiceEngine = null;
                 DirectedEngine secondChoiceEngine = null;
                 DirectedEngine suffixEngine = null;
 
+                // 遍历engineSet中所有DirectEngine，如果某个节点的的
                 for (Iterator<DirectedEngine> i = engineSet.iterator(); i.hasNext(); ) {
                     DirectedEngine engine = i.next();
+                    // engine.directPath在上面被设置为pathSharing中的对应path
+                    // 如果这条路径的“结束节点”的下一个节点是这条路径的首个节点，则这个DirectEngine是后缀引擎
                     if (path_end.direct_next == engine.directedPath.get(0)) {
                         suffixEngine = engine;
                         i.remove();
-                    } else {
+                    }
+                    // 如果不是后缀引擎就是前缀引擎
+                    else {
                         prefixEngine = engine;
                         i.remove();
                     }
                 }
 
+                // 将几个分支都创建DirectEngine并加入EngineSet
                 firstChoiceEngine = getBranchEngine(true);
                 secondChoiceEngine = getBranchEngine(false);
                 engineSet.add(firstChoiceEngine);
                 engineSet.add(secondChoiceEngine);
 
+                // 给两个分支节点添加信息（directedPath、finalGenerator.nextSliceSetMendatory）
                 if (suffixEngine != null) {
                     firstChoiceEngine.addFromEnginePath(suffixEngine);
                     secondChoiceEngine.addFromEnginePath(suffixEngine);
                 }
 
+                // 使prefixEngine生成finalGenerator并加入firstChoiceEngine的finalGenerator，prefixEngineCopy加入secondChoiceEngine的finalGenerator
                 if (prefixEngine != null) {
                     ArrayList<Node> newList = new ArrayList<Node>(prefixEngine.directedPath);
                     DirectedEngine prefixEngineCopy = new DirectedEngine(newList);
@@ -896,7 +940,9 @@ public class Analyzer {
                     engineSet.add(prefixEngine);
                     engineSet.add(prefixEngineCopy);
                 }
-            } else if (type == VulType.LOOP_IN_LOOP || (type == VulType.BRANCH_IN_LOOP && path_end.self == "?")) {
+            }
+            //如果是LOOP_IN_LOOP节点
+            else if (type == VulType.LOOP_IN_LOOP || (type == VulType.BRANCH_IN_LOOP && path_end.self == "?")) {
                 DirectedEngine prefixEngine = null;
                 DirectedEngine suffixEngine = null;
                 for (Iterator<DirectedEngine> i = engineSet.iterator(); i.hasNext(); ) {
@@ -941,8 +987,10 @@ public class Analyzer {
         }
 
         private String getPump() {
+            // 除了LOOP_IN_LOOP和BRANCH_IN_LOOP，一般都是给pathSharing中的每个path配一个engineSet
             Set<DirectedEngine> engineSet = getEngineSet();
 
+            // 给每个engine配一个driver，并加入driverSet
             Set<Driver> driverSet = new HashSet<Driver>();
             for (DirectedEngine engine : engineSet) {
                 Driver mainDriver = new Driver(engine);
@@ -965,6 +1013,9 @@ public class Analyzer {
                 if (option.iterator().next().matchingPath.length() > 9)
                     continue;
 
+
+
+                // 判断是否结束
                 if (allSatisfied(option)) {
                     StringBuffer pathString = option.iterator().next().matchingPath;
                     if (pathString.length() > 0) {
@@ -981,6 +1032,7 @@ public class Analyzer {
                         nextChar = null;
                         break;
                     }
+                    // nextCharSetFull里以Set形式存着所有下一个节点Integer
                     driver.getNextCharSet();
                     if (driver.nextCharSetFull.size() == 0) {
                         nextChar = null;
@@ -989,7 +1041,8 @@ public class Analyzer {
                     if (nextChar == null) {
                         nextChar = new HashSet<Integer>();
                         nextChar.addAll(driver.nextCharSetFull);
-                    } else
+                    }
+                    else
                         nextChar.retainAll(driver.nextCharSetFull);
                 }
                 if (nextChar != null && nextChar.size() > 0) {
@@ -1010,7 +1063,8 @@ public class Analyzer {
                                 newMap.put(driver, triplet.addAt3(driver.nextCharSetMap.get(triplet)));
                                 lastOptions.add(newMap);
                             }
-                        } else {
+                        }
+                        else {
                             Set<Map<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>>> newOptions = new HashSet<Map<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>>>();
                             for (Map<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>> lastMap : lastOptions) {
                                 for (Triplet<Driver, Node, MatchGenerator> triplet : driver.nextSlices) {
@@ -1032,7 +1086,8 @@ public class Analyzer {
                             if (charSet == null) {
                                 charSet = new HashSet<Integer>();
                                 charSet.addAll(optionMap.get(driver).getValue3());
-                            } else
+                            }
+                            else
                                 charSet.retainAll(optionMap.get(driver).getValue3());
                             if (charSet.size() == 0)
                                 break;
@@ -1132,7 +1187,8 @@ public class Analyzer {
                         break;
                     }
                 }
-            } else
+            }
+            else
                 // 默认传入的tmpPath中有内容，直接加入pathSharing
                 pathSharing.add(tmpPath);
         }
@@ -1205,7 +1261,8 @@ public class Analyzer {
                 newVul.fullPath.addAll(getDirectPath(pathEnd.direct_next));
                 newVul.addPath(getDirectPath(pathEnd.new_atoms[0]), false);
                 possibleVuls.add(newVul);
-            } else {
+            }
+            else {
                 for (Node atom : pathEnd.new_atoms) {
                     ArrayList<Node> tmpPath = new ArrayList<Node>();
                     tmpPath.addAll(path);
@@ -1297,7 +1354,8 @@ public class Analyzer {
                     nPath.add(a);
                     nPath.add(b);
                     loopAfterLoop.add(nPath);
-                } else if (onDirectNext(pB, pA)) {
+                }
+                else if (onDirectNext(pB, pA)) {
                     ArrayList<Node> nPath = new ArrayList<Node>();
                     nPath.add(b);
                     nPath.add(a);
@@ -1428,17 +1486,20 @@ public class Analyzer {
                 loopInLoop.add(curr_path);
             getPathFromLoop(node.direct_next, curr_path, direct);
             getPathFromLoop(node.sub_next, curr_path, direct);
-        } else if (node instanceof Branch) {
+        }
+        else if (node instanceof Branch) {
             if (!direct)
                 branchInLoop.add(curr_path);
             for (Node branch_node : node.new_atoms)
                 getPathFromLoop(branch_node, curr_path, direct);
             getPathFromLoop(node.direct_next, curr_path, direct);
-        } else if (node instanceof Ques && !direct) {
+        }
+        else if (node instanceof Ques && !direct) {
             branchInLoop.add(curr_path);
             node.new_atoms = new Node[]{node.atom};
             getPathFromLoop(node.direct_next, curr_path, direct);
-        } else if (node.direct_next != null)
+        }
+        else if (node.direct_next != null)
             getPathFromLoop(node.direct_next, curr_path, direct);
         else if (node.sub_next != null)
             getPathFromLoop(node.sub_next, curr_path, direct);
@@ -1479,7 +1540,8 @@ public class Analyzer {
                     return;
                 else if (cur.self == ")" && node.body != null) {
                     return;
-                } else if (cur instanceof Branch) {
+                }
+                else if (cur instanceof Branch) {
                     List<Node> filter_atoms = new ArrayList<Node>();
                     for (Node a : cur.atoms) {
                         if (a != null)
@@ -1495,7 +1557,8 @@ public class Analyzer {
                 node.direct_prev = cur;
                 buildTree(node);
             }
-        } else if (outNodes.size() == 2) {
+        }
+        else if (outNodes.size() == 2) {
             for (Node node : outNodes) {
                 // System.out.println(" sub node: " + node.self);
                 if (cur.body == node || cur.atom == node || cur.cond == node)
@@ -1505,7 +1568,8 @@ public class Analyzer {
                 node.direct_prev = cur;
                 buildTree(node);
             }
-        } else {
+        }
+        else {
             System.out.println("out node exceeds 2");
             for (Node node : outNodes)
                 System.out.println(" sub node: " + node.self);
