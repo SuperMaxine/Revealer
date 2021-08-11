@@ -138,9 +138,11 @@ public class RedosTester {
 
                     //无关
                     cnt += 1;
-                    if(cnt%500==0)System.out.println(cnt);
-//                    else if(cnt>2500 && cnt%100==0)System.out.println(cnt);
-                    else if(cnt>2700 && cnt%10==0)System.out.println(cnt);
+//                     if(cnt%500==0)
+//                         System.out.println(cnt);
+// //                    else if(cnt>2500 && cnt%100==0)System.out.println(cnt);
+//                     else if(cnt>2700 && cnt%10==0)
+                        System.out.println(cnt);
 
 //                    if(cnt%100==0)System.out.println(cnt);
                 }
@@ -225,7 +227,7 @@ public class RedosTester {
                 if (t.getMatchSteps() > 1e5) {
 //                    outVul.write(regex + "\n");
 //                    outVul.write("Can be attacked");
-//                    System.out.println("Can be attacked:"+regex);
+                   System.out.println("Can be attacked:"+regex);
                     break;
                 }
             } catch (Exception e) {
@@ -252,14 +254,14 @@ public class RedosTester {
 //        RedosTester.testSingleRegexDIY("(str\\=)\\s*(?&lt;value&gt;([a-zA-Z0-9\\,\\.]{1})*)");
 //        RedosTester.testSingleRegexDIY("zxc(abc)*bc(abc)*zxc");
 //			RedosTester.testSingleRegexDIY("(?:(?:http|https)://(?:(?:[^/&=()/§, ]*?)*\\.)+(?:\\w{2,3})+?)(?:/+[^ ?,'§$&()={\\[\\]}]*)*(?:\\?+.*)?$");
-			RedosTester.testSingleRegexDIY("^(?=^.{1,254}$)(^(?:(?!\\.|-)([a-z0-9\\-\\*]{1,63}|([a-z0-9\\-]{1,62}[a-z0-9]))\\.)+(?:[a-z]{2,})$)$");
+// 			RedosTester.testSingleRegexDIY("^(?=^.{1,254}$)(^(?:(?!\\.|-)([a-z0-9\\-\\*]{1,63}|([a-z0-9\\-]{1,62}[a-z0-9]))\\.)+(?:[a-z]{2,})$)$");
 //
 ////			Test Len
 ////			RedosTester.testSingleRegex("m(?=a)n(?!b)x(?<=c)y(?<!d)z");
 //		else if (args.length == 2)
 //			RedosTester.vulValidation(args[0], args[1]);
 //		else
-//        RedosTester.testDataset();
+       RedosTester.testDataset();
     }
 
 }
