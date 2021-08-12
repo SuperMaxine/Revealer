@@ -5950,6 +5950,15 @@ public final class Pattern implements java.io.Serializable {
             return "";
     }
 
+    public ArrayList<Set<Integer>> getSliceSets(Node node) {
+        ArrayList<Set<Integer>> result = new ArrayList<>();
+        Set<Integer> matchSet = getMatchSet(node);
+        if (matchSet == null || matchSet.size() == 0)
+            return result;
+        result.add(matchSet);
+        return result;
+    }
+
     public double getMatchingStepCnt(String prefix, String pump, String suffix, int max_length, double threshold) {
         int repeat_cnt = (max_length - prefix.length() - suffix.length()) / pump.length();
         if (repeat_cnt < 1)

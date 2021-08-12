@@ -110,6 +110,7 @@ public class Analyzer {
             DirectedEngine engine = null;
             MatchGenerator curGenerator = null;
             StringBuffer matchingPath = null;
+            ArrayList<Set<Integer>> matchingSets = new ArrayList<>();
             Map<MatchGenerator, Integer> curCntSet = null;
             int cnt = 0;
             Set<Triplet<Driver, Node, MatchGenerator>> nextSlices = null;
@@ -228,8 +229,9 @@ public class Analyzer {
                 }
                 else
                     curCntSet.put(nextGenerator, lastCnt);
-                if (pattern.isSlice(sliceNode)) // upadate matching path
+                if (pattern.isSlice(sliceNode)) { // upadate matching path
                     matchingPath.append(pattern.getSlice(sliceNode));
+                }
 
                 cnt = curCntSet.get(nextGenerator); // update cur cnt
                 curGenerator = nextGenerator; // update curGenerator = nextGeneratorSource
@@ -1085,7 +1087,7 @@ public class Analyzer {
                                 // pumpSet.put(driver, newSetList);
                             }
                         }
-                        // 已有上一代，生成新一代lastOption
+                        // 已有lastOption，生成并加入新的optionMap
                         else {
                             Set<Map<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>>> newOptions = new HashSet<Map<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>>>();
                             for (Map<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>> lastMap : lastOptions) {
@@ -1132,6 +1134,7 @@ public class Analyzer {
                             continue;
                         // 如果交集不为空加入，创建新一轮的Option迭代
                         else {
+                            // 在这里更新了matchingPath
                             Set<Driver> newOption = getNewOption(optionMap, charSet.iterator().next());
                             if (newOption != null) {
                                 setOfOptions.add(newOption);
