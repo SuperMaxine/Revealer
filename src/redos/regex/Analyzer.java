@@ -231,6 +231,7 @@ public class Analyzer {
                     curCntSet.put(nextGenerator, lastCnt);
                 if (pattern.isSlice(sliceNode)) { // upadate matching path
                     matchingPath.append(pattern.getSlice(sliceNode));
+                    matchingSets.addAll(pattern.getSliceSets(sliceNode));
                 }
 
                 cnt = curCntSet.get(nextGenerator); // update cur cnt
