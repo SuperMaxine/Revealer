@@ -3497,6 +3497,14 @@ public final class Pattern implements java.io.Serializable {
             }
             return result;
         }
+
+        public ArrayList<Set<Integer>> getSliceSet(){
+            ArrayList<Set<Integer>> result = new ArrayList<>();
+            for (int b : buffer) {
+                result.add(new HashSet<>(b));
+            }
+            return result;
+        }
     }
 
     /**
@@ -5952,10 +5960,18 @@ public final class Pattern implements java.io.Serializable {
 
     public ArrayList<Set<Integer>> getSliceSets(Node node) {
         ArrayList<Set<Integer>> result = new ArrayList<>();
-        Set<Integer> matchSet = getMatchSet(node);
-        if (matchSet == null || matchSet.size() == 0)
+        Set<Integer> tmp = getMatchSet(node);
+        if (tmp == null || tmp.size() == 0)
             return result;
-        result.add(matchSet);
+        else if (node instanceof SliceNode)
+            result.addAll(((SliceNode) node).getSliceSet());
+        else if (node instanceof BnM)
+            result.add(tmp);
+        else if (node instanceof CharProperty)
+            result.add(tmp);
+        else
+            return result;
+
         return result;
     }
 

@@ -261,8 +261,9 @@ public class Analyzer {
                     curCntSet.put(nextGenerator, lastCnt + 1);
                 else
                     curCntSet.put(nextGenerator, lastCnt);
-                if (pattern.isSlice(sliceNode)) // upadate matching path
+                if (pattern.isSlice(sliceNode)) { // upadate matching path
                     matchingPath.append(PatternUtils.convertString(ch) + str);
+                }
                 cnt = curCntSet.get(nextGenerator); // update cur cnt
                 curGenerator = nextGenerator; // update curGenerator = nextGeneratorSource
                 // clear curCntSet if next generator reach a repetiton
