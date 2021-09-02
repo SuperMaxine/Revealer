@@ -219,6 +219,7 @@ public class Analyzer {
                 curCntSet.put(curGenerator, cnt);
             }
 
+            // 改造完成
             public void pushForward(Node sliceNode, MatchGenerator nextGeneratorSource) {
                 boolean isEnd = curGenerator.isEnd; // get isEnd flag
                 MatchGenerator nextGenerator = nextGeneratorSource;
@@ -231,6 +232,7 @@ public class Analyzer {
                     curCntSet.put(nextGenerator, lastCnt);
                 if (pattern.isSlice(sliceNode)) { // upadate matching path
                     matchingPath.append(pattern.getSlice(sliceNode));
+                    // 改造：将slice内容放入matchingSets
                     matchingSets.addAll(pattern.getSliceSets(sliceNode));
                 }
 
@@ -275,6 +277,47 @@ public class Analyzer {
                         && curGenerator.curNode == engine.directedPath.get(engine.index - 1))
                     engine.buildNext(curGenerator, cnt);
                 return str;
+            }
+
+            // 改造: 改造出一个依靠Sets的pushForward
+            public ArrayList<Set<Integer>> pushForward(Node sliceNode, MatchGenerator nextGeneratorSource, Set<Integer> ch) {
+                List<Set<Integer>> str = pattern.checkSet(sliceNode, ch);
+                if (str == null)
+                    return null;
+                ch = str.get(0);
+                str = str.subList(1,str.size());
+                boolean isEnd = curGenerator.isEnd; // get isEnd flag
+                MatchGenerator nextGenerator = nextGeneratorSource;
+                int lastCnt = 0;
+                if (curCntSet.containsKey(nextGenerator) && isEnd) { // update curCntSet using isEnd
+                    lastCnt = curCntSet.get(nextGenerator);
+                    curCntSet.put(nextGenerator, lastCnt + 1);
+                }
+                else if (sliceNode != null || isEnd)
+                    curCntSet.put(nextGenerator, lastCnt + 1);
+                else
+                    curCntSet.put(nextGenerator, lastCnt);
+                if (pattern.isSlice(sliceNode)) { // upadate matching path
+                    // matchingPath.append(PatternUtils.convertString(ch) + str);
+                    // 修改: 在此处获得mathcingSets，且不影响matchingPath
+                    matchingSets.addAll(str);
+                    String strResult = "";
+                    for(Set<Integer> tmp : str){
+                        strResult = strResult + (char)((int)tmp.iterator().next());
+                        matchingPath.append(PatternUtils.convertString((char)((int)tmp.iterator().next())));
+                    }
+                }
+                cnt = curCntSet.get(nextGenerator); // update cur cnt
+                curGenerator = nextGenerator; // update curGenerator = nextGeneratorSource
+                // clear curCntSet if next generator reach a repetiton
+                if (curGenerator == engine.headGenerator) {
+                    reachFinal = true;
+                    curCntSet.clear();
+                }
+                if (engine.notFinish(curGenerator, cnt)
+                        && curGenerator.curNode == engine.directedPath.get(engine.index - 1))
+                    engine.buildNext(curGenerator, cnt);
+                return (ArrayList<Set<Integer>>) str;
             }
 
             private void update(Map<Node, MatchGenerator> map, MatchGenerator startGenerator) {
@@ -768,6 +811,7 @@ public class Analyzer {
                 while (newDriver.getState() == CurState.ONLEAVE
                         && newDriver.curGenerator.nextSliceSetMendatory.size() == 1
                         && newDriver.curGenerator.nextSliceSetMendatory.containsKey(null))
+                    // 改造：在此pushForward中，在获取matchingPath同时获取mathingSets
                     newDriver.pushForward(null, newDriver.curGenerator.nextSliceSetMendatory.get(null));
                 if (str == null)
                     return null;
@@ -805,9 +849,81 @@ public class Analyzer {
             return newDriverSet;
         }
 
+        private Set<Driver> getNewOption(Map<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>> optionMap,
+                                         Set<Integer> ch) {
+            ArrayList<Set<Integer>> sliceRemain = null;
+            Driver driverRemain = null;
+            Set<Driver> newDriverSet = new HashSet<Driver>();
+            Set<Driver> nonSliceDriver = new HashSet<Driver>();
+
+            for (Driver driver : optionMap.keySet()) {
+                Quartet<Driver, Node, MatchGenerator, Set<Integer>> quartet = optionMap.get(driver);
+                Driver newDriver = new Driver(quartet.getValue0());
+                // 修改: 把这个pushForward()改为返回Set集合
+                ArrayList<Set<Integer>> str = newDriver.pushForward(quartet.getValue1(), quartet.getValue2(), ch);
+                // push to next if is on leave without slice
+                while (newDriver.getState() == CurState.ONLEAVE
+                        && newDriver.curGenerator.nextSliceSetMendatory.size() == 1
+                        && newDriver.curGenerator.nextSliceSetMendatory.containsKey(null))
+                    // 改造：在此pushForward中，在获取matchingPath同时获取mathingSets
+                    newDriver.pushForward(null, newDriver.curGenerator.nextSliceSetMendatory.get(null));
+                if (str == null)
+                    return null;
+                // else if (str != "") {
+                else if (str.size() != 0) {
+                    if (sliceRemain == null) {
+                        sliceRemain = str;
+                        driverRemain = newDriver;
+                    }
+                    // 改造: ArrayList<Set<Integer>> 之间的“equals”应该是“每一位互相的交集不为空”
+                    // else if (sliceRemain.length() > str.length()
+                    //         && sliceRemain.substring(0, str.length()).equals(str)) {
+                    //     sliceRemain = sliceRemain.substring(str.length());
+                    //     nonSliceDriver.add(newDriver);
+                    // }
+                    else if (sliceRemain.size() > str.size()
+                            // && sliceRemain.subList(0, str.size()).equals(str)) {
+                            && Pattern.setsArrayEqual((ArrayList<Set<Integer>>) sliceRemain.subList(0, str.size()), str)) {
+                        // sliceRemain = (ArrayList<Set<Integer>>) sliceRemain.subList(str.size(), sliceRemain.size());
+                        sliceRemain = new ArrayList<Set<Integer>>(str.subList(str.size(), sliceRemain.size()));
+                        nonSliceDriver.add(newDriver);
+                    }
+                    // else if (sliceRemain.length() < str.length()
+                    //         && sliceRemain.equals(str.substring(0, sliceRemain.length()))) {
+                    //     sliceRemain = str.substring(sliceRemain.length());
+                    //     nonSliceDriver.add(driverRemain);
+                    // }
+                    else if (sliceRemain.size() < str.size()
+                            // && sliceRemain.equals(str.subList(0, sliceRemain.size()))) {
+                            && Pattern.setsArrayEqual(sliceRemain, (ArrayList<Set<Integer>>) str.subList(0, sliceRemain.size()))) {
+                        // sliceRemain = (ArrayList<Set<Integer>>) str.subList(sliceRemain.size(), str.size());
+                        sliceRemain = new ArrayList<Set<Integer>>(str.subList(sliceRemain.size(), str.size()));
+                        nonSliceDriver.add(driverRemain);
+                    }
+                    // else if (!sliceRemain.equals(str))
+                    else if (!Pattern.setsArrayEqual(sliceRemain, str))
+                        return null;
+                }
+                else
+                    nonSliceDriver.add(newDriver);
+                newDriverSet.add(newDriver);
+            }
+
+            if (sliceRemain != null) {
+                for (Driver driver : nonSliceDriver) {
+                    // TODO: could have multiple possibilities, currently push to one.
+                    if (!pushSliceToSatisfied(driver, sliceRemain))
+                        return null;
+                }
+            }
+
+            return newDriverSet;
+        }
+
         private boolean pushSliceToSatisfied(Driver driver, String str) {
             while (driver.getState() == CurState.ONLEAVE && driver.curGenerator.nextSliceSetMendatory.size() == 1
                     && driver.curGenerator.nextSliceSetMendatory.containsKey(null))
+                // 改造：在此pushForward中，在获取matchingPath同时获取mathingSets
                 driver.pushForward(null, driver.curGenerator.nextSliceSetMendatory.get(null));
             driver.getNextSlices();
             Set<Triplet<Driver, Node, MatchGenerator>> option = driver.nextSlices;
@@ -816,10 +932,12 @@ public class Analyzer {
             int ch = str.charAt(0);
             for (Triplet<Driver, Node, MatchGenerator> triplet : option) {
                 Driver newDriver = new Driver(driver);
+                // 改造: 使用返回Set集合的pushForward()
                 String remainStr = newDriver.pushForward(triplet.getValue1(), triplet.getValue2(), ch);
                 while (newDriver.getState() == CurState.ONLEAVE
                         && newDriver.curGenerator.nextSliceSetMendatory.size() == 1
                         && newDriver.curGenerator.nextSliceSetMendatory.containsKey(null))
+                    // 改造：在此pushForward中，在获取matchingPath同时获取mathingSets
                     newDriver.pushForward(null, newDriver.curGenerator.nextSliceSetMendatory.get(null));
                 if (remainStr != null) {
                     if (remainStr == "") {
@@ -844,6 +962,66 @@ public class Analyzer {
                         newDriver.getNextSlices();
                         if (str.substring(1).startsWith(remainStr)
                                 && pushSliceToSatisfied(newDriver, str.substring(1 + remainStr.length()))) {
+                            driver.setAs(newDriver);
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        private boolean pushSliceToSatisfied(Driver driver, ArrayList<Set<Integer>> str) {
+            while (driver.getState() == CurState.ONLEAVE && driver.curGenerator.nextSliceSetMendatory.size() == 1
+                    && driver.curGenerator.nextSliceSetMendatory.containsKey(null))
+                // 改造：在此pushForward中，在获取matchingPath同时获取mathingSets
+                driver.pushForward(null, driver.curGenerator.nextSliceSetMendatory.get(null));
+            driver.getNextSlices();
+            Set<Triplet<Driver, Node, MatchGenerator>> option = driver.nextSlices;
+            if (option == null)
+                return false;
+            // int ch = str.charAt(0);
+            Set<Integer> ch = str.get(0);
+            for (Triplet<Driver, Node, MatchGenerator> triplet : option) {
+                Driver newDriver = new Driver(driver);
+                ArrayList<Set<Integer>> remainStr = newDriver.pushForward(triplet.getValue1(), triplet.getValue2(), ch);
+                while (newDriver.getState() == CurState.ONLEAVE
+                        && newDriver.curGenerator.nextSliceSetMendatory.size() == 1
+                        && newDriver.curGenerator.nextSliceSetMendatory.containsKey(null))
+                    // 改造：在此pushForward中，在获取matchingPath同时获取mathingSets
+                    newDriver.pushForward(null, newDriver.curGenerator.nextSliceSetMendatory.get(null));
+                if (remainStr != null) {
+                    if (remainStr.size() == 0) {
+                        if (str.size() == 1) {
+                            driver.setAs(newDriver);
+                            return true;
+                        }
+                        else {
+                            newDriver.getNextSlices();
+                            // if (pushSliceToSatisfied(newDriver, str.substring(1))) {
+                            if (pushSliceToSatisfied(newDriver, (ArrayList<Set<Integer>>) str.subList(1, str.size()))) {
+                                driver.setAs(newDriver);
+                                return true;
+                            }
+                        }
+                    }
+                    // else if (remainStr.equals(str.substring(1))) {
+                    else if (Pattern.setsArrayEqual(remainStr,(ArrayList<Set<Integer>>)str.subList(1,str.size()))) {
+                        driver.setAs(newDriver);
+                        return true;
+                    }
+                    else if (str.size() > 1 + remainStr.size()
+                            // && str.substring(1, 1 + remainStr.length()) == remainStr) {
+                            // Q: 为什么他这里用==而不想之前和getNewOptions一样用equals？
+                            // A: 只有在pushForward传回str的就是ch的时候，原来的remainStr和str.substring才会相等
+                            // Todo: 暂时还用setsArrayEqual代替，等待发现问题再修复
+                            // && str.substring(1, 1 + remainStr.length()) == remainStr) {
+                            && Pattern.setsArrayEqual((ArrayList<Set<Integer>>) str.subList(1, 1 + remainStr.size()), remainStr)) {
+                        newDriver.getNextSlices();
+                        // if (str.substring(1).startsWith(remainStr)
+                        if (Pattern.startsWith((ArrayList<Set<Integer>>) str.subList(1, str.size()), remainStr)
+                                // && pushSliceToSatisfied(newDriver, str.substring(1 + remainStr.length()))) {
+                                && pushSliceToSatisfied(newDriver, (ArrayList<Set<Integer>>) str.subList(1 + remainStr.size(), str.size()))) {
                             driver.setAs(newDriver);
                             return true;
                         }
@@ -1137,7 +1315,8 @@ public class Analyzer {
                         // 如果交集不为空加入，创建新一轮的Option迭代
                         else {
                             // 在这里更新了matchingPath
-                            Set<Driver> newOption = getNewOption(optionMap, charSet.iterator().next());
+                            // Set<Driver> newOption = getNewOption(optionMap, charSet.iterator().next());
+                            Set<Driver> newOption = getNewOption(optionMap, charSet);
                             if (newOption != null) {
                                 setOfOptions.add(newOption);
                                 size += 1;
@@ -1193,6 +1372,7 @@ public class Analyzer {
                 else
                     pumpStr = getPump();
 
+                // 失败的获取Set尝试
                 ArrayList<Set<Integer>> pumpSetTmp = new ArrayList<>();
                 pumpSetTmp = getPumpSet();
                 pumpSet.addAll(pumpSetTmp);

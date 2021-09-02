@@ -620,6 +620,47 @@ public final class Pattern implements java.io.Serializable {
     }
 
     /**
+     * 判断两个ArraySets是否每位都有不为空的交集
+     */
+    public static boolean setsArrayEqual(ArrayList<Set<Integer>> arr1, ArrayList<Set<Integer>> arr2){
+        boolean result = true;
+        if(arr1.size() == arr2.size()){
+            for(int i = 0; i < arr1.size(); i++){
+                Set<Integer> tmp = new HashSet<Integer>();
+                // Todo: 处理Dot
+                tmp.addAll(arr1.get(i));
+                tmp.retainAll(arr2.get(i));
+                if(tmp.size()==0){
+                    result = false;
+                    break;
+                }
+            }
+        }else{
+            result = false;
+        }
+        return result;
+    }
+
+    /**
+     * 判断是否a是否能以b“开头”
+     * “开头”是指每一位都有交集
+     */
+    public static boolean startsWith(ArrayList<Set<Integer>> a, ArrayList<Set<Integer>> b){
+        if(b.size() > a.size())return false;
+        int to = 0;
+        int pc = b.size();
+        while(--pc >= 0){
+            Set<Integer> tmp = a.get(to);
+            tmp.retainAll(b.get(pc));
+            if(tmp.size()==0){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Recompile the Pattern instance from a stream. The original pattern string is
      * read in and the object tree is recompiled from it.
      */
@@ -5230,6 +5271,14 @@ public final class Pattern implements java.io.Serializable {
             }
             return result;
         }
+
+        public ArrayList<Set<Integer>> getSliceSets() {
+            ArrayList<Set<Integer>> result = new ArrayList<>();
+            for (int b : buffer) {
+                result.add(new HashSet<>(b));
+            }
+            return result;
+        }
     }
 
     /**
@@ -5938,6 +5987,50 @@ public final class Pattern implements java.io.Serializable {
         } else if (node instanceof CharProperty) {
             if (((CharProperty) node).isSatisfiedBy(ch))
                 return "";
+            else
+                return null;
+        } else
+            return null;
+    }
+
+    /**
+     * 通过传入的ch判断节点是否能够满足该单个字符
+     * 如果可以匹配，则返回**整条ArrayList**
+     * 需要在外面手动替换ch内容
+     */
+    public ArrayList<Set<Integer>> checkSet(Node node, Set<Integer> ch){
+        if (node instanceof SliceNode) {
+            ArrayList<Set<Integer>> str = ((SliceNode) node).getSliceSet();
+            // Todo： 对Dot的支持
+            Set<Integer> firstCh = str.get(0);
+            firstCh.retainAll(ch);
+            if (firstCh.size() != 0)
+                // return (ArrayList<Set<Integer>>) str.subList(1, str.size());
+                return str;
+            else
+                return null;
+        } else if (node instanceof BnM) {
+            ArrayList<Set<Integer>> str = ((BnM) node).getSliceSets();
+            // Todo： 对Dot的支持
+            Set<Integer> firstCh = str.get(0);
+            firstCh.retainAll(ch);
+            if (firstCh.size() != 0)
+                return str;
+            else
+                return null;
+        } else if (node instanceof CharProperty) {
+            // if (((CharProperty) node).isSatisfiedBy(ch))
+            //     return "";
+            // Todo： 对Dot的支持
+            // 逻辑：传入的ch和charSet取交集，如果不为空说明有覆盖，返回交集
+            // ~~上面两个Slice逻辑不同，因为他们第一位只有一个int，所以只要判断该int被ch覆盖到即可~~
+            Set<Integer> charCh = ((CharProperty) node).charSet;
+            charCh.retainAll(ch);
+            if(charCh.size() != 0){
+                ArrayList<Set<Integer>> result = new ArrayList<Set<Integer>>();
+                result.add(charCh);
+                return result;
+            }
             else
                 return null;
         } else
