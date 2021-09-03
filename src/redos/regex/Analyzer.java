@@ -16,6 +16,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.javatuples.Quartet;
 import org.javatuples.Triplet;
 
+import org.javatuples.Tuple;
 import redos.regex.Pattern.Branch;
 import redos.regex.Pattern.Node;
 import redos.regex.Pattern.Ques;
@@ -280,7 +281,7 @@ public class Analyzer {
             }
 
             // 改造: 改造出一个依靠Sets的pushForward
-            public ArrayList<Set<Integer>> pushForward(Node sliceNode, MatchGenerator nextGeneratorSource, Set<Integer> ch) {
+            public List<Set<Integer>> pushForward(Node sliceNode, MatchGenerator nextGeneratorSource, Set<Integer> ch) {
                 List<Set<Integer>> str = pattern.checkSet(sliceNode, ch);
                 if (str == null)
                     return null;
@@ -317,7 +318,7 @@ public class Analyzer {
                 if (engine.notFinish(curGenerator, cnt)
                         && curGenerator.curNode == engine.directedPath.get(engine.index - 1))
                     engine.buildNext(curGenerator, cnt);
-                return (ArrayList<Set<Integer>>) str;
+                return str;
             }
 
             private void update(Map<Node, MatchGenerator> map, MatchGenerator startGenerator) {
@@ -851,7 +852,7 @@ public class Analyzer {
 
         private Set<Driver> getNewOption(Map<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>> optionMap,
                                          Set<Integer> ch) {
-            ArrayList<Set<Integer>> sliceRemain = null;
+            List<Set<Integer>> sliceRemain = null;
             Driver driverRemain = null;
             Set<Driver> newDriverSet = new HashSet<Driver>();
             Set<Driver> nonSliceDriver = new HashSet<Driver>();
@@ -860,7 +861,7 @@ public class Analyzer {
                 Quartet<Driver, Node, MatchGenerator, Set<Integer>> quartet = optionMap.get(driver);
                 Driver newDriver = new Driver(quartet.getValue0());
                 // 修改: 把这个pushForward()改为返回Set集合
-                ArrayList<Set<Integer>> str = newDriver.pushForward(quartet.getValue1(), quartet.getValue2(), ch);
+                List<Set<Integer>> str = newDriver.pushForward(quartet.getValue1(), quartet.getValue2(), ch);
                 // push to next if is on leave without slice
                 while (newDriver.getState() == CurState.ONLEAVE
                         && newDriver.curGenerator.nextSliceSetMendatory.size() == 1
@@ -883,7 +884,7 @@ public class Analyzer {
                     // }
                     else if (sliceRemain.size() > str.size()
                             // && sliceRemain.subList(0, str.size()).equals(str)) {
-                            && Pattern.setsArrayEqual((ArrayList<Set<Integer>>) sliceRemain.subList(0, str.size()), str)) {
+                            && Pattern.setsArrayEqual(sliceRemain.subList(0, str.size()), str)) {
                         // sliceRemain = (ArrayList<Set<Integer>>) sliceRemain.subList(str.size(), sliceRemain.size());
                         sliceRemain = new ArrayList<Set<Integer>>(str.subList(str.size(), sliceRemain.size()));
                         nonSliceDriver.add(newDriver);
@@ -895,7 +896,7 @@ public class Analyzer {
                     // }
                     else if (sliceRemain.size() < str.size()
                             // && sliceRemain.equals(str.subList(0, sliceRemain.size()))) {
-                            && Pattern.setsArrayEqual(sliceRemain, (ArrayList<Set<Integer>>) str.subList(0, sliceRemain.size()))) {
+                            && Pattern.setsArrayEqual(sliceRemain, str.subList(0, sliceRemain.size()))) {
                         // sliceRemain = (ArrayList<Set<Integer>>) str.subList(sliceRemain.size(), str.size());
                         sliceRemain = new ArrayList<Set<Integer>>(str.subList(sliceRemain.size(), str.size()));
                         nonSliceDriver.add(driverRemain);
@@ -971,7 +972,7 @@ public class Analyzer {
             return false;
         }
 
-        private boolean pushSliceToSatisfied(Driver driver, ArrayList<Set<Integer>> str) {
+        private boolean pushSliceToSatisfied(Driver driver, List<Set<Integer>> str) {
             while (driver.getState() == CurState.ONLEAVE && driver.curGenerator.nextSliceSetMendatory.size() == 1
                     && driver.curGenerator.nextSliceSetMendatory.containsKey(null))
                 // 改造：在此pushForward中，在获取matchingPath同时获取mathingSets
@@ -984,7 +985,7 @@ public class Analyzer {
             Set<Integer> ch = str.get(0);
             for (Triplet<Driver, Node, MatchGenerator> triplet : option) {
                 Driver newDriver = new Driver(driver);
-                ArrayList<Set<Integer>> remainStr = newDriver.pushForward(triplet.getValue1(), triplet.getValue2(), ch);
+                List<Set<Integer>> remainStr = newDriver.pushForward(triplet.getValue1(), triplet.getValue2(), ch);
                 while (newDriver.getState() == CurState.ONLEAVE
                         && newDriver.curGenerator.nextSliceSetMendatory.size() == 1
                         && newDriver.curGenerator.nextSliceSetMendatory.containsKey(null))
@@ -999,14 +1000,14 @@ public class Analyzer {
                         else {
                             newDriver.getNextSlices();
                             // if (pushSliceToSatisfied(newDriver, str.substring(1))) {
-                            if (pushSliceToSatisfied(newDriver, (ArrayList<Set<Integer>>) str.subList(1, str.size()))) {
+                            if (pushSliceToSatisfied(newDriver, str.subList(1, str.size()))) {
                                 driver.setAs(newDriver);
                                 return true;
                             }
                         }
                     }
                     // else if (remainStr.equals(str.substring(1))) {
-                    else if (Pattern.setsArrayEqual(remainStr,(ArrayList<Set<Integer>>)str.subList(1,str.size()))) {
+                    else if (Pattern.setsArrayEqual(remainStr,str.subList(1,str.size()))) {
                         driver.setAs(newDriver);
                         return true;
                     }
@@ -1016,12 +1017,12 @@ public class Analyzer {
                             // A: 只有在pushForward传回str的就是ch的时候，原来的remainStr和str.substring才会相等
                             // Todo: 暂时还用setsArrayEqual代替，等待发现问题再修复
                             // && str.substring(1, 1 + remainStr.length()) == remainStr) {
-                            && Pattern.setsArrayEqual((ArrayList<Set<Integer>>) str.subList(1, 1 + remainStr.size()), remainStr)) {
+                            && Pattern.setsArrayEqual(str.subList(1, 1 + remainStr.size()), remainStr)) {
                         newDriver.getNextSlices();
                         // if (str.substring(1).startsWith(remainStr)
-                        if (Pattern.startsWith((ArrayList<Set<Integer>>) str.subList(1, str.size()), remainStr)
+                        if (Pattern.startsWith(str.subList(1, str.size()), remainStr)
                                 // && pushSliceToSatisfied(newDriver, str.substring(1 + remainStr.length()))) {
-                                && pushSliceToSatisfied(newDriver, (ArrayList<Set<Integer>>) str.subList(1 + remainStr.size(), str.size()))) {
+                                && pushSliceToSatisfied(newDriver, str.subList(1 + remainStr.size(), str.size()))) {
                             driver.setAs(newDriver);
                             return true;
                         }
@@ -1180,7 +1181,7 @@ public class Analyzer {
             return resultSet;
         }
 
-        private String getPump() {
+        private Map<String, ArrayList<Set<Integer>>> getPump() {
             // 除了LOOP_IN_LOOP和BRANCH_IN_LOOP，一般都是给pathSharing中的每个path配一个engineSet
             Set<DirectedEngine> engineSet = getEngineSet();
 
@@ -1198,7 +1199,8 @@ public class Analyzer {
             setOfOptions.add(driverSet);
             int size = 1;
 
-            String result = null;
+            // String result = null;
+            HashMap<String, ArrayList<Set<Integer>>> results = new HashMap<String, ArrayList<Set<Integer>>>();
             // 记录Set序列
             Map<Driver, ArrayList<Set<Integer>>> pumpSet = new HashMap<>();
             ArrayList<Set<Integer>> pumpSetList = new ArrayList<Set<Integer>>();
@@ -1215,8 +1217,11 @@ public class Analyzer {
                 // 判断是否结束
                 if (allSatisfied(option)) {
                     StringBuffer pathString = option.iterator().next().matchingPath;
+                    ArrayList<Set<Integer>> pathArrayList = option.iterator().next().matchingSets;
                     if (pathString.length() > 0) {
-                        return pathString.toString();
+                        results.put(pathString.toString(), pathArrayList);
+                        return results;
+                        // return pathString.toString();
                     }
                 }
 
@@ -1339,7 +1344,7 @@ public class Analyzer {
                 }
             }
 
-            return result;
+            return results;
         }
 
         private String getSuffix() {
@@ -1369,13 +1374,20 @@ public class Analyzer {
                 String pumpStr = null;
                 if (pathSharing.size() == 1 && (type != VulType.BRANCH_IN_LOOP || path_end.self == "?"))
                     pumpStr = getShortestMatching(pathSharing.get(0));
-                else
-                    pumpStr = getPump();
+                else {
+                    // 原版
+                    // pumpStr = getPump();
 
-                // 失败的获取Set尝试
-                ArrayList<Set<Integer>> pumpSetTmp = new ArrayList<>();
-                pumpSetTmp = getPumpSet();
-                pumpSet.addAll(pumpSetTmp);
+                    // 改为Set之后
+                    Map.Entry<String, ArrayList<Set<Integer>>> pumpResult = getPump().entrySet().iterator().next();
+                    pumpStr = pumpResult.getKey();
+                    pumpSet.addAll(pumpResult.getValue());
+                }
+
+                // // 失败的获取Set尝试
+                // ArrayList<Set<Integer>> pumpSetTmp = new ArrayList<>();
+                // pumpSetTmp = getPumpSet();
+                // pumpSet.addAll(pumpSetTmp);
 
                 if (pumpStr != null && pumpStr.length() > 0) {
                     pump.append(pumpStr);

@@ -622,7 +622,7 @@ public final class Pattern implements java.io.Serializable {
     /**
      * 判断两个ArraySets是否每位都有不为空的交集
      */
-    public static boolean setsArrayEqual(ArrayList<Set<Integer>> arr1, ArrayList<Set<Integer>> arr2){
+    public static boolean setsArrayEqual(List<Set<Integer>> arr1, List<Set<Integer>> arr2){
         boolean result = true;
         if(arr1.size() == arr2.size()){
             for(int i = 0; i < arr1.size(); i++){
@@ -645,7 +645,7 @@ public final class Pattern implements java.io.Serializable {
      * 判断是否a是否能以b“开头”
      * “开头”是指每一位都有交集
      */
-    public static boolean startsWith(ArrayList<Set<Integer>> a, ArrayList<Set<Integer>> b){
+    public static boolean startsWith(List<Set<Integer>> a, List<Set<Integer>> b){
         if(b.size() > a.size())return false;
         int to = 0;
         int pc = b.size();
@@ -3542,7 +3542,9 @@ public final class Pattern implements java.io.Serializable {
         public ArrayList<Set<Integer>> getSliceSet(){
             ArrayList<Set<Integer>> result = new ArrayList<>();
             for (int b : buffer) {
-                result.add(new HashSet<>(b));
+                Set<Integer> tmp = new HashSet<>();
+                tmp.add(b);
+                result.add(tmp);
             }
             return result;
         }
@@ -5275,7 +5277,9 @@ public final class Pattern implements java.io.Serializable {
         public ArrayList<Set<Integer>> getSliceSets() {
             ArrayList<Set<Integer>> result = new ArrayList<>();
             for (int b : buffer) {
-                result.add(new HashSet<>(b));
+                Set<Integer> tmp = new HashSet<>();
+                tmp.add(b);
+                result.add(tmp);
             }
             return result;
         }
