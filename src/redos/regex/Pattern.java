@@ -6028,7 +6028,7 @@ public final class Pattern implements java.io.Serializable {
             // Todo： 对Dot的支持
             // 逻辑：传入的ch和charSet取交集，如果不为空说明有覆盖，返回交集
             // ~~上面两个Slice逻辑不同，因为他们第一位只有一个int，所以只要判断该int被ch覆盖到即可~~
-            Set<Integer> charCh = ((CharProperty) node).charSet;
+            Set<Integer> charCh = new HashSet<Integer>(((CharProperty) node).charSet);
             charCh.retainAll(ch);
             if(charCh.size() != 0){
                 ArrayList<Set<Integer>> result = new ArrayList<Set<Integer>>();

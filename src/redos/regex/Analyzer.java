@@ -16,7 +16,6 @@ import com.alibaba.fastjson.JSONObject;
 import org.javatuples.Quartet;
 import org.javatuples.Triplet;
 
-import org.javatuples.Tuple;
 import redos.regex.Pattern.Branch;
 import redos.regex.Pattern.Node;
 import redos.regex.Pattern.Ques;
@@ -131,6 +130,7 @@ public class Analyzer {
                 curGenerator = oldDriver.curGenerator;
                 matchingPath = new StringBuffer();
                 matchingPath.append(oldDriver.matchingPath);
+                matchingSets.addAll(oldDriver.matchingSets);
                 curCntSet = new HashMap<MatchGenerator, Integer>();
                 curCntSet.putAll(oldDriver.curCntSet);
                 cnt = oldDriver.cnt;
@@ -151,7 +151,8 @@ public class Analyzer {
             private boolean driverSatisfied() {
                 if (reachFinal)
                     return true;
-                else if ((curGenerator == engine.finalGenerator && getState() != CurState.UNSATISFIED))
+                else
+                    if ((curGenerator == engine.finalGenerator && getState() != CurState.UNSATISFIED))
                     return true;
                 else if (getState() == CurState.SATISFIED && hasNext(CurState.SATISFIED)
                         && curGenerator.nextSliceSetSatisfied.containsKey(null)) {
@@ -301,8 +302,10 @@ public class Analyzer {
                 if (pattern.isSlice(sliceNode)) { // upadate matching path
                     // matchingPath.append(PatternUtils.convertString(ch) + str);
                     // 修改: 在此处获得mathcingSets，且不影响matchingPath
+                    matchingSets.add(ch);
                     matchingSets.addAll(str);
                     String strResult = "";
+                    matchingPath.append(PatternUtils.convertString((char)((int)ch.iterator().next())));
                     for(Set<Integer> tmp : str){
                         strResult = strResult + (char)((int)tmp.iterator().next());
                         matchingPath.append(PatternUtils.convertString((char)((int)tmp.iterator().next())));
@@ -770,11 +773,22 @@ public class Analyzer {
                     break;
                 case LOOP_AFTER_LOOP:
                     // 把头和尾子串中的内容也过一遍addPath，看看有没有必要加入pathSharing
-                    addPath(getDirectPath(path_start.sub_next), false);
+                    // addPath(getDirectPath(path_start.sub_next), false);
                     // addPath(getDirectPath(path_end.sub_next), false);
                     suffixHead = path_end;
                     break;
             }
+        }
+
+        public VulStructure(Node node) {
+            initialize();
+            path_start = node;
+            path_end = node.direct_next;
+            suffixHead = path_end;
+            addPath(getDirectPath(path_start.sub_next), false);
+            // ArrayList<Node> tmpPath = new ArrayList<Node>();
+            // tmpPath.add(node);
+            // pathSharing.add(tmpPath);
         }
 
         private String getPrefix() {
@@ -1073,7 +1087,7 @@ public class Analyzer {
 
         private Set<DirectedEngine> getEngineSet() {
             Set<DirectedEngine> engineSet = new HashSet<DirectedEngine>();
-            // 对pathSharing中每条Path新建一个DirectEngine
+            // 对pathSharing中每条Path新建一个DirectEngine，存在engineSet中
             for (ArrayList<Node> tmpPath : pathSharing) {
                 ArrayList<Node> pathCopy = new ArrayList<Node>(tmpPath);
                 engineSet.add(new DirectedEngine(pathCopy, false));
@@ -1201,9 +1215,9 @@ public class Analyzer {
 
             // String result = null;
             HashMap<String, ArrayList<Set<Integer>>> results = new HashMap<String, ArrayList<Set<Integer>>>();
-            // 记录Set序列
-            Map<Driver, ArrayList<Set<Integer>>> pumpSet = new HashMap<>();
-            ArrayList<Set<Integer>> pumpSetList = new ArrayList<Set<Integer>>();
+            // // 记录Set序列
+            // Map<Driver, ArrayList<Set<Integer>>> pumpSet = new HashMap<>();
+            // ArrayList<Set<Integer>> pumpSetList = new ArrayList<Set<Integer>>();
 
             for (int i = 0; i < size; i++) {
                 Set<Driver> option = setOfOptions.get(i);
@@ -1218,10 +1232,12 @@ public class Analyzer {
                 if (allSatisfied(option)) {
                     StringBuffer pathString = option.iterator().next().matchingPath;
                     ArrayList<Set<Integer>> pathArrayList = option.iterator().next().matchingSets;
-                    if (pathString.length() > 0) {
-                        results.put(pathString.toString(), pathArrayList);
-                        return results;
+                    if (pathString.length() > 0
+                        && (option.iterator().next().curGenerator != option.iterator().next().engine.lastGenerator
+                            || option.iterator().next().curGenerator == option.iterator().next().engine.headGenerator)) {
                         // return pathString.toString();
+                        results.put(pathString.toString(), pathArrayList);
+                        // return results;
                     }
                 }
 
@@ -1256,7 +1272,7 @@ public class Analyzer {
                             if (driver.nextCharSetMap.get(triplet).size() == 0)
                                 driver.nextSlices.remove(triplet);
                         }
-                        // 新建lastOption
+                        // 新建lastOption，对driver的nextSlices中每个
                         if (lastOptions == null) {
                             lastOptions = new HashSet<Map<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>>>();
                             for (Triplet<Driver, Node, MatchGenerator> triplet : driver.nextSlices) {
@@ -1299,7 +1315,7 @@ public class Analyzer {
                         }
                     }
 
-                    // 推进新的Option
+                    // 推进新的Options
                     for (Map<Driver, Quartet<Driver, Node, MatchGenerator, Set<Integer>>> optionMap : lastOptions) {
                         Set<Integer> charSet = null;
                         // 对下一个字符求交集
@@ -1327,18 +1343,18 @@ public class Analyzer {
                                 size += 1;
                             }
 
-                            // 向pumpSet中记录
-                            pumpSetList.add(charSet);
-                            for(Driver driver : optionMap.keySet()){
-                                if(pumpSet.containsKey(driver))
-                                    pumpSet.get(driver).add(charSet);
-                                else {
-                                    // 新建pumpSet元素
-                                    ArrayList<Set<Integer>> newSetList = new ArrayList<Set<Integer>>();
-                                    newSetList.add(charSet);
-                                    pumpSet.put(driver, newSetList);
-                                }
-                            }
+                            // // // 向pumpSet中记录
+                            // // pumpSetList.add(charSet);
+                            // for(Driver driver : optionMap.keySet()){
+                            //     if(pumpSet.containsKey(driver))
+                            //         pumpSet.get(driver).add(charSet);
+                            //     else {
+                            //         // 新建pumpSet元素
+                            //         ArrayList<Set<Integer>> newSetList = new ArrayList<Set<Integer>>();
+                            //         newSetList.add(charSet);
+                            //         pumpSet.put(driver, newSetList);
+                            //     }
+                            // }
                         }
                     }
                 }
@@ -1372,17 +1388,22 @@ public class Analyzer {
                 result = Existance.NOT_EXIST;
             else {
                 String pumpStr = null;
-                if (pathSharing.size() == 1 && (type != VulType.BRANCH_IN_LOOP || path_end.self == "?"))
-                    pumpStr = getShortestMatching(pathSharing.get(0));
-                else {
+                Map<String, ArrayList<Set<Integer>>> pumpResult = null;
+                // if (pathSharing.size() == 1 && (type != VulType.BRANCH_IN_LOOP || path_end.self == "?"))
+                //     pumpStr = getShortestMatching(pathSharing.get(0));
+                // else {
                     // 原版
                     // pumpStr = getPump();
 
                     // 改为Set之后
-                    Map.Entry<String, ArrayList<Set<Integer>>> pumpResult = getPump().entrySet().iterator().next();
-                    pumpStr = pumpResult.getKey();
-                    pumpSet.addAll(pumpResult.getValue());
-                }
+                    // Todo: 无法获取Branch中的其他分支
+                    pumpResult = getPump();
+                    if(pumpResult != null && pumpResult.size() > 0){
+                        Map.Entry<String, ArrayList<Set<Integer>>> tmp = pumpResult.entrySet().iterator().next();
+                        pumpStr = tmp.getKey();
+                        pumpSet.addAll(tmp.getValue());
+                    }
+                // }
 
                 // // 失败的获取Set尝试
                 // ArrayList<Set<Integer>> pumpSetTmp = new ArrayList<>();
@@ -1501,74 +1522,80 @@ public class Analyzer {
     public void doDynamicAnalysis(BufferedWriter outVul, int index, double threshold) throws IOException {
         possibleVuls = new ArrayList<VulStructure>();
 
-        for (ArrayList<Node> path : loopInLoop) {
-            VulStructure newVul = new VulStructure(path, VulType.LOOP_IN_LOOP);
-            possibleVuls.add(newVul);
-        }
+        // for (ArrayList<Node> path : loopInLoop) {
+        //     VulStructure newVul = new VulStructure(path, VulType.LOOP_IN_LOOP);
+        //     possibleVuls.add(newVul);
+        // }
 
-        for (ArrayList<Node> path : branchInLoop) {
-            Node pathEnd = path.get(path.size() - 1);
-            if (pathEnd.self == "?") {
-                VulStructure newVul = new VulStructure(path, VulType.BRANCH_IN_LOOP);
-                newVul.fullPath.addAll(getDirectPath(pathEnd.new_atoms[0]));
-                newVul.fullPath.addAll(getDirectPath(pathEnd.direct_next));
-                newVul.addPath(getDirectPath(pathEnd.new_atoms[0]), false);
-                possibleVuls.add(newVul);
-            }
-            else {
-                for (Node atom : pathEnd.new_atoms) {
-                    ArrayList<Node> tmpPath = new ArrayList<Node>();
-                    tmpPath.addAll(path);
-                    VulStructure newVul = new VulStructure(tmpPath, VulType.BRANCH_IN_LOOP);
-                    newVul.curAtom = atom;
-                    possibleVuls.add(newVul);
-                    if (pathEnd.new_atoms.length == 2)
-                        break;
-                }
-            }
-        }
+        // for (ArrayList<Node> path : branchInLoop) {
+        //     Node pathEnd = path.get(path.size() - 1);
+        //     if (pathEnd.self == "?") {
+        //         VulStructure newVul = new VulStructure(path, VulType.BRANCH_IN_LOOP);
+        //         newVul.fullPath.addAll(getDirectPath(pathEnd.new_atoms[0]));
+        //         newVul.fullPath.addAll(getDirectPath(pathEnd.direct_next));
+        //         newVul.addPath(getDirectPath(pathEnd.new_atoms[0]), false);
+        //         possibleVuls.add(newVul);
+        //     }
+        //     else {
+        //         for (Node atom : pathEnd.new_atoms) {
+        //             ArrayList<Node> tmpPath = new ArrayList<Node>();
+        //             tmpPath.addAll(path);
+        //             VulStructure newVul = new VulStructure(tmpPath, VulType.BRANCH_IN_LOOP);
+        //             newVul.curAtom = atom;
+        //             possibleVuls.add(newVul);
+        //             if (pathEnd.new_atoms.length == 2)
+        //                 break;
+        //         }
+        //     }
+        // }
 
-        for (ArrayList<Node> path : loopAfterLoop) {
-            VulStructure newVul = new VulStructure(path, VulType.LOOP_AFTER_LOOP);
+        // for (ArrayList<Node> path : loopAfterLoop) {
+        //     VulStructure newVul = new VulStructure(path, VulType.LOOP_AFTER_LOOP);
+        //     possibleVuls.add(newVul);
+        // }
+
+        // Todo: 测试用临时代码
+        for (Node node  : loopNodes) {
+            VulStructure newVul = new VulStructure(node);
             possibleVuls.add(newVul);
         }
 
         for (VulStructure vulCase : possibleVuls) {
             vulCase.checkPathSharing();
-            if (vulCase.result == Existance.EXIST) {
-                if (checkResult(vulCase.prefix.toString(), vulCase.pump.toString(), vulCase.suffix.toString(),
-                        maxLength, threshold)) {
-                    vulCase.printResult(outVul, index);
-                    break;
-                }
-                vulCase.suffixDriver.traverseToLast();
-                String previousPath = vulCase.suffixDriver.matchingPath.toString();
-                if (previousPath.length() > 1)
-                    previousPath = previousPath.substring(0, 1);
-                else if (previousPath.length() == 0 && vulCase.suffixDriver.curGenerator.curNode.direct_next != null) {
-                    Set<Integer> nextMatchSet = pattern
-                            .getFirstMatchSet(vulCase.suffixDriver.curGenerator.curNode.direct_next);
-                    if (nextMatchSet != null && nextMatchSet.size() > 0)
-                        previousPath = PatternUtils.convertString(nextMatchSet.iterator().next());
-                }
-                vulCase.suffixDriver.matchingPath.setLength(0);
-                String lastFailedStr = vulCase.suffixDriver.getShortestFailedMatch();
-                if (lastFailedStr == "")
-                    lastFailedStr = previousPath;
-                if (checkResult(vulCase.prefix.toString(), vulCase.pump.toString(),
-                        vulCase.suffix.toString() + lastFailedStr, maxLength, threshold)) {
-                    vulCase.suffix.append(lastFailedStr);
-                    vulCase.printResult(outVul, index);
-                    break;
-                }
-                if (lastFailedStr != previousPath && previousPath != "" && checkResult(vulCase.prefix.toString(),
-                        vulCase.pump.toString(), vulCase.suffix.toString() + previousPath, maxLength, threshold)) {
-                    vulCase.suffix.setLength(vulCase.suffix.length() - lastFailedStr.length());
-                    vulCase.suffix.append(previousPath);
-                    vulCase.printResult(outVul, index);
-                    break;
-                }
-            }
+            // if (vulCase.result == Existance.EXIST) {
+            //     if (checkResult(vulCase.prefix.toString(), vulCase.pump.toString(), vulCase.suffix.toString(),
+            //             maxLength, threshold)) {
+            //         vulCase.printResult(outVul, index);
+            //         break;
+            //     }
+            //     vulCase.suffixDriver.traverseToLast();
+            //     String previousPath = vulCase.suffixDriver.matchingPath.toString();
+            //     if (previousPath.length() > 1)
+            //         previousPath = previousPath.substring(0, 1);
+            //     else if (previousPath.length() == 0 && vulCase.suffixDriver.curGenerator.curNode.direct_next != null) {
+            //         Set<Integer> nextMatchSet = pattern
+            //                 .getFirstMatchSet(vulCase.suffixDriver.curGenerator.curNode.direct_next);
+            //         if (nextMatchSet != null && nextMatchSet.size() > 0)
+            //             previousPath = PatternUtils.convertString(nextMatchSet.iterator().next());
+            //     }
+            //     vulCase.suffixDriver.matchingPath.setLength(0);
+            //     String lastFailedStr = vulCase.suffixDriver.getShortestFailedMatch();
+            //     if (lastFailedStr == "")
+            //         lastFailedStr = previousPath;
+            //     if (checkResult(vulCase.prefix.toString(), vulCase.pump.toString(),
+            //             vulCase.suffix.toString() + lastFailedStr, maxLength, threshold)) {
+            //         vulCase.suffix.append(lastFailedStr);
+            //         vulCase.printResult(outVul, index);
+            //         break;
+            //     }
+            //     if (lastFailedStr != previousPath && previousPath != "" && checkResult(vulCase.prefix.toString(),
+            //             vulCase.pump.toString(), vulCase.suffix.toString() + previousPath, maxLength, threshold)) {
+            //         vulCase.suffix.setLength(vulCase.suffix.length() - lastFailedStr.length());
+            //         vulCase.suffix.append(previousPath);
+            //         vulCase.printResult(outVul, index);
+            //         break;
+            //     }
+            // }
         }
     }
 
