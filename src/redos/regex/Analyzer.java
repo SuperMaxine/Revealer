@@ -1233,8 +1233,9 @@ public class Analyzer {
                     StringBuffer pathString = option.iterator().next().matchingPath;
                     ArrayList<Set<Integer>> pathArrayList = option.iterator().next().matchingSets;
                     if (pathString.length() > 0
-                        && (option.iterator().next().curGenerator != option.iterator().next().engine.lastGenerator
-                            || option.iterator().next().curGenerator == option.iterator().next().engine.headGenerator)) {
+                        // && (option.iterator().next().curGenerator != option.iterator().next().engine.lastGenerator
+                        //     || option.iterator().next().curGenerator == option.iterator().next().engine.headGenerator)
+                    ) {
                         // return pathString.toString();
                         results.put(pathString.toString(), pathArrayList);
                         // return results;
