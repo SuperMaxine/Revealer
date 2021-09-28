@@ -3189,7 +3189,7 @@ public final class Pattern implements java.io.Serializable {
     /**
      * Abstract node class to match one character satisfying some boolean property.
      */
-    private static abstract class CharProperty extends Node {
+    public static abstract class CharProperty extends Node {
         Set<Integer> charSet = new HashSet<Integer>();
         Integer defaultChar = 0;
         boolean except = false;

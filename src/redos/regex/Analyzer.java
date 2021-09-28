@@ -2,14 +2,8 @@ package redos.regex;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.nio.file.Path;
+import java.util.*;
 
 import com.alibaba.fastjson.JSONObject;
 
@@ -40,17 +34,23 @@ public class Analyzer {
         StringBuffer prefix;
         StringBuffer pump;
         ArrayList<Set<Integer>> pumpSet;
+        ArrayList<ArrayList<Set<Integer>>> pumpSets;
+        ArrayList<ArrayList<Set<Integer>>> pumpSets2;
+        ArrayList<Set<Integer>> infix;
         StringBuffer suffix;
         Driver suffixDriver = null;
         ArrayList<ArrayList<Node>> pathSharing;
         ArrayList<Node> fullPath;
         ArrayList<Node> path;
         Node path_start;
+        Node path_start2;
         Node path_end;
+        Node path_end2;
         Node suffixHead;
         Node curAtom;
         VulType type;
         Existance result = Existance.NOT_SURE;
+        private Object MyComparator;
 
         private class MatchGenerator {
             Node curNode = null;
@@ -1383,6 +1383,102 @@ public class Analyzer {
             return suffix;
         }
 
+        public class MyComparator implements Comparator{
+
+            public int compare(Object o1, Object o2) {
+                ArrayList p1 = (ArrayList) o1;
+                ArrayList p2 = (ArrayList) o2;
+                if (p1.size() < p2.size()) return 1;
+                else return 0;
+            }
+        }
+
+        /**
+         * 获取用于重复的中缀字符串
+         */
+        public void getInfix() {
+            // EOD、EOA、NQ
+            if(type == VulType.ONE_COUNTING){
+                Collections.sort(pumpSets,(l1, l2) -> Integer.compare(l1.size(), l2.size()));
+                ListIterator aItr = pumpSets.listIterator();
+                while(aItr.hasNext()){
+                    ArrayList<Set<Integer>> a = (ArrayList<Set<Integer>>) aItr.next();
+                   // ListIterator bItr = pumpSets.listIterator();
+                    ListIterator bItr = pumpSets.listIterator(aItr.previousIndex());
+                    while(bItr.hasNext()){
+                       ArrayList<Set<Integer>> b = (ArrayList<Set<Integer>>) bItr.next();
+                       if(b.size() != a.size())break;
+                       if(Pattern.setsArrayEqual(a,b)){
+                           infix.addAll(a);
+                       }
+                   }
+                }
+            // POA
+            }else if(type == VulType.POA){
+                // 如果相邻，判断有没有路径完全重合
+                if(path_end2.direct_next == path_start || path_end.direct_next == path_start) {
+                    Collections.sort(pumpSets, (l1, l2) -> Integer.compare(l1.size(), l2.size()));
+                    Collections.sort(pumpSets2, (l1, l2) -> Integer.compare(l1.size(), l2.size()));
+                    ListIterator aItr = pumpSets.listIterator();
+                    while (aItr.hasNext()) {
+                        ArrayList<Set<Integer>> a = (ArrayList<Set<Integer>>) aItr.next();
+                        ListIterator bItr = pumpSets2.listIterator();
+                        while (bItr.hasNext()) {
+                            ArrayList<Set<Integer>> b = (ArrayList<Set<Integer>>) bItr.next();
+                            if (b.size() != a.size()) break;
+                            if (Pattern.setsArrayEqual(a, b)) {
+                                infix.addAll(a);
+                            }
+                        }
+                    }
+                }
+                // 如果中间间隔内容：先获取中间内容，再将其与首个Counting拼接，判断是否有能与第二个Counting完全重合的路径
+                else if(onDirectNext(path_end2, path_start)){
+                    ArrayList<Set<Integer>> mid = getDirectPathSet(path_end2, path_start);
+                    ListIterator aItr = pumpSets2.listIterator();
+                    while(aItr.hasNext()){
+                        ArrayList<Set<Integer>> a = (ArrayList<Set<Integer>>) aItr.next();
+                        a.addAll(mid);
+                        ListIterator bItr = pumpSets.listIterator();
+                        while (bItr.hasNext()) {
+                            ArrayList<Set<Integer>> b = (ArrayList<Set<Integer>>) bItr.next();
+                            if (b.size() != a.size()) break;
+                            if (Pattern.setsArrayEqual(a, b)) {
+                                infix.addAll(a);
+                            }
+                        }
+                    }
+                }else if(onDirectNext(path_end, path_start2)){
+                    ArrayList<Set<Integer>> mid = getDirectPathSet(path_end, path_start2);
+                    ListIterator aItr = pumpSets.listIterator();
+                    while(aItr.hasNext()){
+                        ArrayList<Set<Integer>> a = (ArrayList<Set<Integer>>) aItr.next();
+                        a.addAll(mid);
+                        ListIterator bItr = pumpSets2.listIterator();
+                        while (bItr.hasNext()) {
+                            ArrayList<Set<Integer>> b = (ArrayList<Set<Integer>>) bItr.next();
+                            if (b.size() != a.size()) break;
+                            if (Pattern.setsArrayEqual(a, b)) {
+                                infix.addAll(a);
+                            }
+                        }
+                    }
+                }
+            // SLQ：判断前缀是否是中缀的前缀
+            }else if(type == VulType.SLQ){
+                ArrayList<Set<Integer>> prefixSets = getDirectPathSet(pattern.root, path_start);
+                ListIterator aItr = pumpSets.listIterator();
+                while(aItr.hasNext()) {
+                    ArrayList<Set<Integer>> a = (ArrayList<Set<Integer>>) aItr.next();
+                    if(Pattern.startsWith(a, prefixSets)){
+                        infix.addAll(prefixSets);
+                        infix.addAll(a);
+                        break;
+                    };
+                }
+            }
+        }
+
         public void checkPathSharing() {
             if (pathSharing.size() == 0 && (type != VulType.BRANCH_IN_LOOP || path_end.self == "?"))
                 result = Existance.NOT_EXIST;
@@ -1398,11 +1494,12 @@ public class Analyzer {
                     // 改为Set之后
                     // Todo: 无法获取Branch中的其他分支
                     pumpResult = getPump();
-                    if(pumpResult != null && pumpResult.size() > 0){
-                        Map.Entry<String, ArrayList<Set<Integer>>> tmp = pumpResult.entrySet().iterator().next();
-                        pumpStr = tmp.getKey();
-                        pumpSet.addAll(tmp.getValue());
-                    }
+                    // if(pumpResult != null && pumpResult.size() > 0){
+                    //     Map.Entry<String, ArrayList<Set<Integer>>> tmp = pumpResult.entrySet().iterator().next();
+                    //     pumpStr = tmp.getKey();
+                    //     pumpSet.addAll(tmp.getValue());
+                    // }
+
                 // }
 
                 // // 失败的获取Set尝试
@@ -1512,7 +1609,8 @@ public class Analyzer {
     }
 
     public enum VulType {
-        LOOP_IN_LOOP, BRANCH_IN_LOOP, LOOP_AFTER_LOOP
+        LOOP_IN_LOOP, BRANCH_IN_LOOP, LOOP_AFTER_LOOP,
+        ONE_COUNTING, POA, SLQ
     }
 
     public enum CurState {
@@ -1562,6 +1660,7 @@ public class Analyzer {
 
         for (VulStructure vulCase : possibleVuls) {
             vulCase.checkPathSharing();
+            vulCase.getInfix();
             // if (vulCase.result == Existance.EXIST) {
             //     if (checkResult(vulCase.prefix.toString(), vulCase.pump.toString(), vulCase.suffix.toString(),
             //             maxLength, threshold)) {
@@ -1657,6 +1756,16 @@ public class Analyzer {
         ArrayList<Node> path = new ArrayList<Node>();
         while (node != null) {
             path.add(node);
+            node = node.direct_next;
+        }
+        return path;
+    }
+
+    private ArrayList<Set<Integer>> getDirectPathSet(Node node, Node node2) {
+        ArrayList<Set<Integer>> path = new ArrayList<>();
+        while (node != null && node != node2) {
+            if(node instanceof Pattern.CharProperty)
+            path.add(((Pattern.CharProperty)node).charSet);
             node = node.direct_next;
         }
         return path;
