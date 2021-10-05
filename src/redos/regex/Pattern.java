@@ -413,7 +413,7 @@ public final class Pattern implements java.io.Serializable {
      * @throws PatternSyntaxException            If the expression's syntax is
      *                                           invalid
      */
-    public static boolean matches(String regex, CharSequence input, Trace trace) {
+    public static Trace matches(String regex, CharSequence input, Trace trace) {    // 修改
         Pattern p = Pattern.compile(regex);
         Matcher m = p.matcher(input, trace);
         return m.matches();
@@ -646,6 +646,8 @@ public final class Pattern implements java.io.Serializable {
      * and match flags are all that is needed to completely describe a Pattern. An
      * empty pattern string results in an object tree with only a Start node and a
      * LastNode node.
+     * 此私有构造函数用于创建所有模式。模式字符串和匹配标志是完整描述模式所需的全部。
+     * 一个空的模式字符串会产生一个只有一个 Start 节点和一个 LastNode 节点的对象树。
      */
     private Pattern(String p, int f) {
         pattern = p;
@@ -964,6 +966,7 @@ public final class Pattern implements java.io.Serializable {
     /**
      * Copies regular expression to an int array and invokes the parsing of the
      * expression which will create the object tree.
+     * 将正则表达式复制到 int 数组并调用将创建对象树的表达式的解析。
      */
     private void compile() {
         // Handle canonical equivalences
@@ -976,6 +979,7 @@ public final class Pattern implements java.io.Serializable {
 
         // Copy pattern to int array for convenience
         // Use double zero to terminate pattern
+        // 为方便起见，将模式复制到 int 数组 使用双零终止模式(所以长度+2)
         temp = new int[patternLength + 2];
 
         hasSupplementary = false;
@@ -1279,11 +1283,13 @@ public final class Pattern implements java.io.Serializable {
     /**
      * The following methods handle the main parsing. They are sorted according to
      * their precedence order, the lowest one first.
+     * 以下方法处理主要解析。它们按照它们的优先顺序排序，最低的在前。
      */
 
     /**
      * The expression is parsed with branch nodes added for alternations. This may
      * be called recursively to parse sub expressions that may contain alternations.
+     * 该表达式是通过添加分支节点来解析的。这可以递归调用以解析可能包含交替的子表达式。
      */
     private Node expr(Node end) {
         Node prev = null;
@@ -1291,6 +1297,7 @@ public final class Pattern implements java.io.Serializable {
         Branch branch = null;
         Node branchConn = null;
 
+        int beginFlagTemp = cursor;
         for (;;) {
             Node node = sequence(end);
             Node nodeTail = root; // double return
@@ -1326,6 +1333,10 @@ public final class Pattern implements java.io.Serializable {
                 }
             }
             if (peek() != '|') {
+                if(branch != null) {
+                    branch.beginFlag = beginFlagTemp;
+                    branch.endFlag = cursor;
+                }
                 return prev;
             }
             next();
@@ -1341,12 +1352,14 @@ public final class Pattern implements java.io.Serializable {
         Node tail = null;
         Node node = null;
         LOOP: for (;;) {
+            int beginFlagTemp = cursor;
             int ch = peek();
             switch (ch) {
                 case '(':
                     // Because group handles its own closure,
                     // we need to treat it differently
                     node = group0();
+
                     // Check for comment or flag group
                     if (node == null)
                         continue;
@@ -1356,9 +1369,13 @@ public final class Pattern implements java.io.Serializable {
                         tail.next = node;
                     // Double return: Tail was returned in root
                     tail = root;
+                    node.beginFlag = beginFlagTemp;
+                    node.endFlag = cursor;
                     continue;
                 case '[':
                     node = clazz(true);
+                    node.beginFlag = beginFlagTemp;
+                    node.endFlag = cursor;
                     break;
                 case '\\':
                     ch = nextEscaped();
@@ -1376,6 +1393,8 @@ public final class Pattern implements java.io.Serializable {
                         unread();
                         node = atom();
                     }
+                    node.beginFlag = beginFlagTemp;
+                    node.endFlag = cursor;
                     break;
                 case '^':
                     next();
@@ -1387,6 +1406,8 @@ public final class Pattern implements java.io.Serializable {
                     } else {
                         node = new Begin("^");
                     }
+                    node.beginFlag = beginFlagTemp;
+                    node.endFlag = cursor;
                     break;
                 case '$':
                     next();
@@ -1394,6 +1415,8 @@ public final class Pattern implements java.io.Serializable {
                         node = new UnixDollar(has(MULTILINE), "$");
                     else
                         node = new Dollar(has(MULTILINE), "$");
+                    node.beginFlag = beginFlagTemp;
+                    node.endFlag = cursor;
                     break;
                 case '.':
                     next();
@@ -1406,6 +1429,8 @@ public final class Pattern implements java.io.Serializable {
                             node = new Dot(".");
                         }
                     }
+                    node.beginFlag = beginFlagTemp;
+                    node.endFlag = cursor;
                     break;
                 case '|':
                 case ')':
@@ -1413,6 +1438,8 @@ public final class Pattern implements java.io.Serializable {
                 case ']': // Now interpreting dangling ] and } as literals
                 case '}':
                     node = atom();
+                    node.beginFlag = beginFlagTemp;
+                    node.endFlag = cursor;
                     break;
                 case '?':
                 case '*':
@@ -1426,10 +1453,14 @@ public final class Pattern implements java.io.Serializable {
                     // Fall through
                 default:
                     node = atom();
+                    node.beginFlag = beginFlagTemp;
+                    node.endFlag = cursor;
                     break;
             }
 
             node = closure(node);
+            node.beginFlag = beginFlagTemp;
+            node.endFlag = cursor;
 
             if (head == null) {
                 head = tail = node;
@@ -2101,6 +2132,7 @@ public final class Pattern implements java.io.Serializable {
      * root.
      */
     private Node group0() {
+        int beginFlagTemp = cursor;
         boolean capturingGroup = false;
         Node head = null;
         Node tail = null;
@@ -2186,11 +2218,14 @@ public final class Pattern implements java.io.Serializable {
                     head.next = expr(tail);
                     break;
             }
+            head.beginFlag = beginFlagTemp;
         } else { // (xxx) a regular group
             capturingGroup = true;
             head = createGroup(false);
             tail = root;
             head.next = expr(tail);
+            head.beginFlag = beginFlagTemp;
+            head.endFlag = cursor+1;
         }
 
         accept(')', "Unclosed group");
@@ -2198,6 +2233,8 @@ public final class Pattern implements java.io.Serializable {
 
         // Check for quantifiers
         Node node = closure(head);
+        node.beginFlag = beginFlagTemp;
+        node.endFlag = cursor;
         if (node == head) { // No closure
             root = tail;
             return node; // Dual return
@@ -2221,6 +2258,8 @@ public final class Pattern implements java.io.Serializable {
                 head = new Branch(null, head, tail, "?Lazy");
             }
             root = tail;
+            head.beginFlag = beginFlagTemp;
+            head.endFlag = cursor;
             return head;
         } else if (node instanceof Curly) {
             Curly curly = (Curly) node;
@@ -2228,16 +2267,16 @@ public final class Pattern implements java.io.Serializable {
                 root = node;
                 return node;
             }
-            // Discover if the group is deterministic
+            // Discover if the group is deterministic 发现该组是否是确定性的
             TreeInfo info = new TreeInfo();
-            if (head.study(info)) { // Deterministic
+            if (head.study(info)) { // Deterministic 确定性的
                 String self_str = head == null ? curly.self : "GroupHead: (\n" + curly.self;
                 head = root = new GroupCurly(head.next, curly.cmin, curly.cmax, curly.type,
                         ((GroupTail) tail).localIndex, ((GroupTail) tail).groupIndex,
                         // capturingGroup, "(){" + curly.cmin + "," + curly.cmax + "}");
                         capturingGroup, self_str);
                 return head;
-            } else { // Non-deterministic
+            } else { // Non-deterministic 非确定性的
                 int temp = ((GroupHead) head).localIndex;
                 Loop loop;
                 if (curly.type == GREEDY)
@@ -2251,6 +2290,8 @@ public final class Pattern implements java.io.Serializable {
                 loop.body = head;
                 tail.next = loop;
                 root = loop;
+                loop.beginFlag = beginFlagTemp;
+                loop.endFlag = cursor;
                 return prolog; // Dual return
             }
         }
@@ -2709,6 +2750,8 @@ public final class Pattern implements java.io.Serializable {
     public static class Node extends Object {
         // For which string (or char) in the regex, create this node
         String self;
+        int beginFlag;
+        int endFlag;
 
         // Formulating the graph by main/sub path
         Node direct_next;
@@ -2718,6 +2761,7 @@ public final class Pattern implements java.io.Serializable {
         Node[] new_atoms;
 
         // All possible next node, these vars are used to generate regex graph
+        // 所有可能的下一个节点，这些变量用于生成正则表达式图
         Node next;
         Node next_self; // Prepare for start without ^ regex's pump-along
         Node atom; // Curly
@@ -2783,8 +2827,9 @@ public final class Pattern implements java.io.Serializable {
          * to see if the match occurred using all of the input.
          */
         boolean match(Matcher matcher, int i, CharSequence seq) {
-            if (matcher.acceptMode == Matcher.ENDANCHOR && i != matcher.to)
+            if (matcher.acceptMode == Matcher.ENDANCHOR && i != matcher.to) {
                 return false;
+            }
             matcher.last = i;
             matcher.groups[0] = matcher.first;
             matcher.groups[1] = matcher.last;
@@ -3485,9 +3530,9 @@ public final class Pattern implements java.io.Serializable {
         }
 
         /**
-         * 鏉╂瑤閲滈崙鑺ユ殶閻€劋绨亸鍞卬t閸栨牜娈憉nicode鐎涙顑佹潪顒�娲杝tring
+         * 鏉╂瑤閲滈崙鑺ユ殶閻€劋绨亸鍞卬t閸栨牜娈憉nicode鐎涙顑佹潪顒?娲杝tring
          * 
-         * @return slice閻ㄥ垺uffer鏉烆剛娈憉nicode鐎涙顑佹稉锟�
+         * @return slice閻ㄥ垺uffer鏉烆剛娈憉nicode鐎涙顑佹稉锟?
          */
         public String getSliceBuffer() {
             String result = "";
@@ -5210,9 +5255,9 @@ public final class Pattern implements java.io.Serializable {
         }
 
         /**
-         * 鏉╂瑤閲滈崙鑺ユ殶閻€劋绨亸鍞卬t閸栨牜娈憉nicode鐎涙顑佹潪顒�娲杝tring
+         * 鏉╂瑤閲滈崙鑺ユ殶閻€劋绨亸鍞卬t閸栨牜娈憉nicode鐎涙顑佹潪顒?娲杝tring
          * 
-         * @return slice閻ㄥ垺uffer鏉烆剛娈憉nicode鐎涙顑佹稉锟�
+         * @return slice閻ㄥ垺uffer鏉烆剛娈憉nicode鐎涙顑佹稉锟?
          */
         public String getSliceBuffer() {
             String result = "";
@@ -5950,14 +5995,16 @@ public final class Pattern implements java.io.Serializable {
             return "";
     }
 
-    public double getMatchingStepCnt(String prefix, String pump, String suffix, int max_length, double threshold) {
+    public int getMatchingStepCnt(String prefix, String pump, String suffix, int max_length, int threshold) {   // 修改
         int repeat_cnt = (max_length - prefix.length() - suffix.length()) / pump.length();
         if (repeat_cnt < 1)
             return 0;
         String repeated = new String(new char[repeat_cnt]).replace("\0", pump);
         String attack_string = prefix + repeated + suffix;
         Matcher m = matcher(attack_string, new Trace(threshold, false));
-        Trace t = m.find();
+        Trace t = m.matches();
+                //m.find();
+//        System.out.println("t.getMatchSteps() = " + t.getMatchSteps());
         return t.getMatchSteps();
     }
 
