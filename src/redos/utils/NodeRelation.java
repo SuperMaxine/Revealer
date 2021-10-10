@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import redos.regex.Pattern.Node;
+import redos.regex.redosPattern.Node;
 
 public class NodeRelation {
 	private Map<Node, Set<Node>> nodeParents = new HashMap<Node, Set<Node>>();

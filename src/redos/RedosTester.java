@@ -8,13 +8,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.Scanner;
 
 import com.alibaba.fastjson.JSONObject;
 
 import redos.regex.Analyzer;
-import redos.regex.Matcher;
-import redos.regex.Pattern;
+import redos.regex.reodsMatcher;
+import redos.regex.redosPattern;
 
 public class RedosTester {
 	public static void vulValidation(String inputPath, String outputPath) throws IOException {
@@ -59,8 +58,8 @@ public class RedosTester {
 				System.out.print(jsonObject + "\n");
 
 				try {
-					Pattern p = Pattern.compile(regex);
-					Matcher m = p.matcher(attack_string, new Trace(threshold, false));
+					redosPattern p = redosPattern.compile(regex);
+					reodsMatcher m = p.matcher(attack_string, new Trace(threshold, false));
 					Trace t = m.find();
 
 					System.out.print(t.getMatchSteps() + "\n");
@@ -83,7 +82,7 @@ public class RedosTester {
 		int max_length = 128;
 		double threshold = 1e5;
 		BufferedWriter log = new BufferedWriter(new OutputStreamWriter(System.out));
-		Pattern p = Pattern.compile(regex);
+		redosPattern p = redosPattern.compile(regex);
 		Analyzer redosAnalyzer = new Analyzer(p, max_length);
 		redosAnalyzer.doStaticAnalysis();
 		redosAnalyzer.doDynamicAnalysis(log, -1, threshold);
@@ -110,7 +109,7 @@ public class RedosTester {
 				while ((regex = bufferedReader.readLine()) != null) {
 					try {
 						System.out.print(regex + "\n");
-						Pattern p = Pattern.compile(regex);
+						redosPattern p = redosPattern.compile(regex);
 						Analyzer redosAnalyzer = new Analyzer(p, max_length);
 						redosAnalyzer.doStaticAnalysis();
 						redosAnalyzer.doDynamicAnalysis(outVul, cnt, threshold);
