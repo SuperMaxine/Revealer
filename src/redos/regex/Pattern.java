@@ -1008,6 +1008,7 @@ public final class Pattern implements java.io.Serializable {
      * Copies regular expression to an int array and invokes the parsing of the
      * expression which will create the object tree.
      * 将正则表达式复制到 int 数组并调用将创建对象树的表达式的解析。
+     * @return
      */
     private void compile() {
         // Handle canonical equivalences

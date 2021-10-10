@@ -2,6 +2,7 @@ package redos.regex;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -10,6 +11,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.javatuples.Quartet;
 import org.javatuples.Triplet;
 
+import redos.Trace;
 import redos.regex.Pattern.Branch;
 import redos.regex.Pattern.Node;
 import redos.regex.Pattern.Ques;
@@ -50,6 +52,9 @@ public class Analyzer {
         Node curAtom;
         VulType type;
         Existance result = Existance.NOT_SURE;
+        String regex;
+        int beginFlag;
+        int endFlag;
         private Object MyComparator;
 
         private class MatchGenerator {
@@ -780,6 +785,20 @@ public class Analyzer {
             }
         }
 
+        public VulStructure(Node node, String r) {
+            initialize();
+            path_start = node;
+            path_end = node.direct_next;
+            suffixHead = path_end;
+            addPath(getDirectPath(path_start.sub_next), false);
+            regex = r;
+            beginFlag = node.beginFlag;
+            endFlag = node.endFlag;
+            // ArrayList<Node> tmpPath = new ArrayList<Node>();
+            // tmpPath.add(node);
+            // pathSharing.add(tmpPath);
+        }
+
         public VulStructure(Node node) {
             initialize();
             path_start = node;
@@ -1494,8 +1513,37 @@ public class Analyzer {
 
                     // 改为Set之后
                     // Todo: 无法获取Branch中的其他分支
-                    pumpResult = getPump();
-                    // if(pumpResult != null && pumpResult.size() > 0){
+                pumpResult = getPump();
+
+                for(Iterator<String> iterator = pumpResult.keySet().iterator();iterator.hasNext(); ) {
+                    String key = iterator.next();
+
+                    Pattern r = Pattern.compile(regex.substring(beginFlag, endFlag));
+                    Trace t = new Trace(1e4);
+                    CharSequence cs = key;
+                    Matcher m = r.matcher(cs, t);
+                    Trace k = m.find();
+
+                    if(k.str.length() != key.length()){
+                        iterator.remove();
+                    }
+                }
+                for (Map.Entry<String, ArrayList<Set<Integer>>> entry : pumpResult.entrySet()) {
+                    // System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
+                    Pattern r = Pattern.compile(regex.substring(beginFlag, endFlag));
+                    Trace t = new Trace(1e4);
+                    CharSequence cs = entry.getKey();
+                    Matcher m = r.matcher(cs, t);
+                    Trace k = m.find();
+                    System.out.println(k.str.length());
+                    System.out.println(entry.getKey().length());
+                    System.out.println(k.str.length() == entry.getKey().length());
+
+                    if(k.str.length() != entry.getKey().length()){
+
+                    }
+                }
+                // if(pumpResult != null && pumpResult.size() > 0){
                     //     Map.Entry<String, ArrayList<Set<Integer>>> tmp = pumpResult.entrySet().iterator().next();
                     //     pumpStr = tmp.getKey();
                     //     pumpSet.addAll(tmp.getValue());
@@ -1655,7 +1703,8 @@ public class Analyzer {
 
         // Todo: 测试用临时代码
         for (Node node  : loopNodes) {
-            VulStructure newVul = new VulStructure(node);
+            // VulStructure newVul = new VulStructure(node);
+            VulStructure newVul = new VulStructure(node,regex);
             possibleVuls.add(newVul);
         }
 
