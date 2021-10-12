@@ -8,12 +8,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.Scanner;
-
-import com.alibaba.fastjson.JSONObject;
 
 import redos.regex.Analyzer;
-import redos.regex.Matcher;
 import redos.regex.Pattern;
 
 public class RedosTester {

@@ -355,14 +355,14 @@ public final class Pattern implements java.io.Serializable {
      *
      * @return A new matcher for this pattern
      */
-    public Matcher matcher(CharSequence input, Trace trace) {
+    public redosMatcher matcher(CharSequence input, Trace trace) {
         if (!compiled) {
             synchronized (this) {
                 if (!compiled)
                     compile();
             }
         }
-        Matcher m = new Matcher(this, input, trace);
+        redosMatcher m = new redosMatcher(this, input, trace);
         return m;
     }
 
@@ -415,7 +415,7 @@ public final class Pattern implements java.io.Serializable {
      */
     public static Trace matches(String regex, CharSequence input, Trace trace) {    // 修改
         Pattern p = Pattern.compile(regex);
-        Matcher m = p.matcher(input, trace);
+        redosMatcher m = p.matcher(input, trace);
         return m.matches();
     }
 
@@ -504,7 +504,7 @@ public final class Pattern implements java.io.Serializable {
         int index = 0;
         boolean matchLimited = limit > 0;
         ArrayList<String> matchList = new ArrayList<>();
-        Matcher m = matcher(input, trace);
+        redosMatcher m = matcher(input, trace);
 
         // Add segments before each match found
         while (m.find().matchSuccess) {
@@ -2744,14 +2744,14 @@ public final class Pattern implements java.io.Serializable {
         /**
          * This method implements the classic accept node.
          */
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             matcher.last = i;
             matcher.groups[0] = matcher.first;
             matcher.groups[1] = matcher.last;
             return true;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq, boolean isTraced) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq, boolean isTraced) {
             if (isTraced) {
                 if (trace.logMatch(this, i)) {
                     return this.match(matcher, i, seq);
@@ -2782,8 +2782,8 @@ public final class Pattern implements java.io.Serializable {
          * This method implements the classic accept node with the addition of a check
          * to see if the match occurred using all of the input.
          */
-        boolean match(Matcher matcher, int i, CharSequence seq) {
-            if (matcher.acceptMode == Matcher.ENDANCHOR && i != matcher.to) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
+            if (matcher.acceptMode == redosMatcher.ENDANCHOR && i != matcher.to) {
                 return false;
             }
             matcher.last = i;
@@ -2812,7 +2812,7 @@ public final class Pattern implements java.io.Serializable {
                 this.next.next_self = this.next;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             if (i > matcher.to - minLength) {
                 matcher.hitEnd = true;
                 return false;
@@ -2846,7 +2846,7 @@ public final class Pattern implements java.io.Serializable {
             super(node);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             if (i > matcher.to - minLength) {
                 matcher.hitEnd = true;
                 return false;
@@ -2885,7 +2885,7 @@ public final class Pattern implements java.io.Serializable {
             super(self);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int fromIndex = (matcher.anchoringBounds) ? matcher.from : 0;
             if (i == fromIndex && next.match(matcher, i, seq, true)) {
                 matcher.first = i;
@@ -2907,7 +2907,7 @@ public final class Pattern implements java.io.Serializable {
             super(self);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int endIndex = (matcher.anchoringBounds) ? matcher.to : matcher.getTextLength();
             if (i == endIndex) {
                 matcher.hitEnd = true;
@@ -2926,7 +2926,7 @@ public final class Pattern implements java.io.Serializable {
             super(self);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int startIndex = matcher.from;
             int endIndex = matcher.to;
             if (!matcher.anchoringBounds) {
@@ -2959,7 +2959,7 @@ public final class Pattern implements java.io.Serializable {
             super(self);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int startIndex = matcher.from;
             int endIndex = matcher.to;
             if (!matcher.anchoringBounds) {
@@ -2990,7 +2990,7 @@ public final class Pattern implements java.io.Serializable {
             super(self);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             if (i != matcher.oldLast)
                 return false;
             return next.match(matcher, i, seq, true);
@@ -3018,7 +3018,7 @@ public final class Pattern implements java.io.Serializable {
             multiline = mul;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int endIndex = (matcher.anchoringBounds) ? matcher.to : matcher.getTextLength();
             if (!multiline) {
                 if (i < endIndex - 2)
@@ -3081,7 +3081,7 @@ public final class Pattern implements java.io.Serializable {
             multiline = mul;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int endIndex = (matcher.anchoringBounds) ? matcher.to : matcher.getTextLength();
             if (i < endIndex) {
                 char ch = seq.charAt(i);
@@ -3121,7 +3121,7 @@ public final class Pattern implements java.io.Serializable {
             super(self);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             // (u+000Du+000A|[u+000Au+000Bu+000Cu+000Du+0085u+2028u+2029])
             if (i < matcher.to) {
                 int ch = seq.charAt(i);
@@ -3193,7 +3193,7 @@ public final class Pattern implements java.io.Serializable {
             };
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             if (i < matcher.to) {
                 int ch = Character.codePointAt(seq, i);
                 return isSatisfiedBy(ch) && next.match(matcher, i + Character.charCount(ch), seq, true);
@@ -3230,7 +3230,7 @@ public final class Pattern implements java.io.Serializable {
             super(self);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             if (i < matcher.to) {
                 return isSatisfiedBy(seq.charAt(i)) && next.match(matcher, i + 1, seq, true);
             } else {
@@ -3508,7 +3508,7 @@ public final class Pattern implements java.io.Serializable {
             super(buf);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int[] buf = buffer;
             int len = buf.length;
             for (int j = 0; j < len; j++) {
@@ -3531,7 +3531,7 @@ public final class Pattern implements java.io.Serializable {
             super(buf);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int[] buf = buffer;
             int len = buf.length;
             for (int j = 0; j < len; j++) {
@@ -3556,7 +3556,7 @@ public final class Pattern implements java.io.Serializable {
             super(buf);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int[] buf = buffer;
             int len = buf.length;
             for (int j = 0; j < len; j++) {
@@ -3581,7 +3581,7 @@ public final class Pattern implements java.io.Serializable {
             super(buf);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int[] buf = buffer;
             int x = i;
             for (int j = 0; j < buf.length; j++) {
@@ -3615,7 +3615,7 @@ public final class Pattern implements java.io.Serializable {
             return ASCII.toLower(c);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int[] buf = buffer;
             int x = i;
             for (int j = 0; j < buf.length; j++) {
@@ -3769,7 +3769,7 @@ public final class Pattern implements java.io.Serializable {
             this.type = type;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             switch (type) {
                 case GREEDY:
                     return (atom.match(matcher, i, seq, true) && next.match(matcher, matcher.last, seq, true))
@@ -3821,7 +3821,7 @@ public final class Pattern implements java.io.Serializable {
                 this.atom.atom_self = this.atom;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             if (this.next != null && this.next.next_self == null)
                 this.next.next_self = this.next;
 
@@ -3844,7 +3844,7 @@ public final class Pattern implements java.io.Serializable {
         // Greedy match.
         // i is the index to start matching at
         // j is the number of atoms that have matched
-        boolean match0(Matcher matcher, int i, int j, CharSequence seq) {
+        boolean match0(redosMatcher matcher, int i, int j, CharSequence seq) {
             if (j >= cmax) {
                 // We have matched the maximum... continue with the rest of
                 // the regular expression
@@ -3886,7 +3886,7 @@ public final class Pattern implements java.io.Serializable {
         // Reluctant match. At this point, the minimum has been satisfied.
         // i is the index to start matching at
         // j is the number of atoms that have matched
-        boolean match1(Matcher matcher, int i, int j, CharSequence seq) {
+        boolean match1(redosMatcher matcher, int i, int j, CharSequence seq) {
             for (;;) {
                 // Try finishing match without consuming any more
                 if (next.match(matcher, i, seq, true))
@@ -3906,7 +3906,7 @@ public final class Pattern implements java.io.Serializable {
             }
         }
 
-        boolean match2(Matcher matcher, int i, int j, CharSequence seq) {
+        boolean match2(redosMatcher matcher, int i, int j, CharSequence seq) {
             for (; j < cmax; j++) {
                 if (!atom.match(matcher, i, seq, true))
                     break;
@@ -3981,7 +3981,7 @@ public final class Pattern implements java.io.Serializable {
                 this.atom.atom_self = this.atom;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             if (this.next != null && this.next.next_self == null)
                 this.next.next_self = this.next;
 
@@ -4033,7 +4033,7 @@ public final class Pattern implements java.io.Serializable {
         }
 
         // Aggressive group match
-        boolean match0(Matcher matcher, int i, int j, CharSequence seq) {
+        boolean match0(redosMatcher matcher, int i, int j, CharSequence seq) {
             // don't back off passing the starting "j"
             int min = j;
             int[] groups = matcher.groups;
@@ -4100,7 +4100,7 @@ public final class Pattern implements java.io.Serializable {
         }
 
         // Reluctant matching
-        boolean match1(Matcher matcher, int i, int j, CharSequence seq) {
+        boolean match1(redosMatcher matcher, int i, int j, CharSequence seq) {
             for (;;) {
                 if (next.match(matcher, i, seq, true))
                     return true;
@@ -4120,7 +4120,7 @@ public final class Pattern implements java.io.Serializable {
         }
 
         // Possessive matching
-        boolean match2(Matcher matcher, int i, int j, CharSequence seq) {
+        boolean match2(redosMatcher matcher, int i, int j, CharSequence seq) {
             for (; j < cmax; j++) {
                 if (!atom.match(matcher, i, seq, true)) {
                     break;
@@ -4183,7 +4183,7 @@ public final class Pattern implements java.io.Serializable {
             super(self);
         };
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             return next.match(matcher, i, seq, true);
         }
 
@@ -4231,7 +4231,7 @@ public final class Pattern implements java.io.Serializable {
             atoms[size++] = node;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             for (int n = 0; n < size; n++) {
                 if (atoms[n] == null) {
                     if (conn.next.match(matcher, i, seq, true))
@@ -4289,7 +4289,7 @@ public final class Pattern implements java.io.Serializable {
             localIndex = localCount;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int save = matcher.locals[localIndex];
             matcher.locals[localIndex] = i;
             boolean ret = next.match(matcher, i, seq, true);
@@ -4297,7 +4297,7 @@ public final class Pattern implements java.io.Serializable {
             return ret;
         }
 
-        boolean matchRef(Matcher matcher, int i, CharSequence seq) {
+        boolean matchRef(redosMatcher matcher, int i, CharSequence seq) {
             int save = matcher.locals[localIndex];
             matcher.locals[localIndex] = ~i; // HACK
             boolean ret = next.match(matcher, i, seq, true);
@@ -4316,7 +4316,7 @@ public final class Pattern implements java.io.Serializable {
             this.head = head;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             return head.matchRef(matcher, i, seq) && next.match(matcher, matcher.last, seq, true);
         }
 
@@ -4345,7 +4345,7 @@ public final class Pattern implements java.io.Serializable {
             groupIndex = groupCount + groupCount;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int tmp = matcher.locals[localIndex];
             if (tmp >= 0) { // This is the normal group case.
                 // Save the group so we can unset it if it
@@ -4380,7 +4380,7 @@ public final class Pattern implements java.io.Serializable {
             this.loop = loop;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             return loop.matchInit(matcher, i, seq, true);
         }
 
@@ -4407,7 +4407,7 @@ public final class Pattern implements java.io.Serializable {
             this.beginIndex = beginIndex;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             // Avoid infinite loop in zero-length case.
             if (i > matcher.locals[beginIndex]) {
                 int count = matcher.locals[countIndex];
@@ -4441,7 +4441,7 @@ public final class Pattern implements java.io.Serializable {
             return next.match(matcher, i, seq, true);
         }
 
-        boolean matchInit(Matcher matcher, int i, CharSequence seq, boolean isTraced) {
+        boolean matchInit(redosMatcher matcher, int i, CharSequence seq, boolean isTraced) {
             if (isTraced) {
                 if (trace.logMatch(this, i))
                     return this.matchInit(matcher, i, seq);
@@ -4451,7 +4451,7 @@ public final class Pattern implements java.io.Serializable {
                 return this.matchInit(matcher, i, seq);
         }
 
-        boolean matchInit(Matcher matcher, int i, CharSequence seq) {
+        boolean matchInit(redosMatcher matcher, int i, CharSequence seq) {
             int save = matcher.locals[countIndex];
             boolean ret = false;
             if (0 < cmin) {
@@ -4487,7 +4487,7 @@ public final class Pattern implements java.io.Serializable {
             super(countIndex, beginIndex, self);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             // Check for zero length group
             if (i > matcher.locals[beginIndex]) {
                 int count = matcher.locals[countIndex];
@@ -4516,7 +4516,7 @@ public final class Pattern implements java.io.Serializable {
             return next.match(matcher, i, seq, true);
         }
 
-        boolean matchInit(Matcher matcher, int i, CharSequence seq) {
+        boolean matchInit(redosMatcher matcher, int i, CharSequence seq) {
             int save = matcher.locals[countIndex];
             boolean ret = false;
             if (0 < cmin) {
@@ -4551,7 +4551,7 @@ public final class Pattern implements java.io.Serializable {
             groupIndex = groupCount + groupCount;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int j = matcher.groups[groupIndex];
             int k = matcher.groups[groupIndex + 1];
 
@@ -4591,7 +4591,7 @@ public final class Pattern implements java.io.Serializable {
             this.doUnicodeCase = doUnicodeCase;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int j = matcher.groups[groupIndex];
             int k = matcher.groups[groupIndex + 1];
 
@@ -4649,7 +4649,7 @@ public final class Pattern implements java.io.Serializable {
             this.atom = BnM.optimize(node);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             if (atom instanceof BnM) {
                 return atom.match(matcher, i, seq, true) && next.match(matcher, matcher.last, seq, true);
             }
@@ -4683,7 +4683,7 @@ public final class Pattern implements java.io.Serializable {
             this.not = not;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             if (cond.match(matcher, i, seq, true)) {
                 return yes.match(matcher, i, seq, true);
             } else {
@@ -4722,7 +4722,7 @@ public final class Pattern implements java.io.Serializable {
             this.cond = cond;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int savedTo = matcher.to;
             boolean conditionMatched = false;
 
@@ -4749,7 +4749,7 @@ public final class Pattern implements java.io.Serializable {
             this.cond = cond;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int savedTo = matcher.to;
             boolean conditionMatched = false;
 
@@ -4778,7 +4778,7 @@ public final class Pattern implements java.io.Serializable {
      * encountered.
      */
     static Node lookbehindEnd = new Node("") {
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             return i == matcher.lookbehindTo;
         }
     };
@@ -4797,7 +4797,7 @@ public final class Pattern implements java.io.Serializable {
             this.rmin = rmin;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int savedFrom = matcher.from;
             boolean conditionMatched = false;
             int startIndex = (!matcher.transparentBounds) ? matcher.from : 0;
@@ -4826,7 +4826,7 @@ public final class Pattern implements java.io.Serializable {
             super(cond, rmax, rmin, self);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int rmaxChars = countChars(seq, i, -rmax);
             int rminChars = countChars(seq, i, -rmin);
             int savedFrom = matcher.from;
@@ -4863,7 +4863,7 @@ public final class Pattern implements java.io.Serializable {
             this.rmin = rmin;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int savedLBT = matcher.lookbehindTo;
             int savedFrom = matcher.from;
             boolean conditionMatched = false;
@@ -4892,7 +4892,7 @@ public final class Pattern implements java.io.Serializable {
             super(cond, rmax, rmin, self);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int rmaxChars = countChars(seq, i, -rmax);
             int rminChars = countChars(seq, i, -rmin);
             int savedFrom = matcher.from;
@@ -5021,7 +5021,7 @@ public final class Pattern implements java.io.Serializable {
             return useUWORD ? UnicodeProp.WORD.is(ch) : (ch == '_' || Character.isLetterOrDigit(ch));
         }
 
-        int check(Matcher matcher, int i, CharSequence seq) {
+        int check(redosMatcher matcher, int i, CharSequence seq) {
             int ch;
             boolean left = false;
             int startIndex = matcher.from;
@@ -5049,7 +5049,7 @@ public final class Pattern implements java.io.Serializable {
             return ((left ^ right) ? (right ? LEFT : RIGHT) : NONE);
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             return (check(matcher, i, seq) & type) > 0 && next.match(matcher, i, seq, true);
         }
     }
@@ -5058,7 +5058,7 @@ public final class Pattern implements java.io.Serializable {
      * Non spacing marks only count as word characters in bounds calculations if
      * they have a base character.
      */
-    private static boolean hasBaseCharacter(Matcher matcher, int i, CharSequence seq) {
+    private static boolean hasBaseCharacter(redosMatcher matcher, int i, CharSequence seq) {
         int start = (!matcher.transparentBounds) ? matcher.from : 0;
         for (int x = i; x >= start; x--) {
             int ch = Character.codePointAt(seq, x);
@@ -5169,7 +5169,7 @@ public final class Pattern implements java.io.Serializable {
             this.next = next;
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int[] src = buffer;
             int patternLength = src.length;
             int last = matcher.to - patternLength;
@@ -5239,7 +5239,7 @@ public final class Pattern implements java.io.Serializable {
             }
         }
 
-        boolean match(Matcher matcher, int i, CharSequence seq) {
+        boolean match(redosMatcher matcher, int i, CharSequence seq) {
             int[] src = buffer;
             int patternLength = src.length;
             int last = matcher.to - lengthInChars;
@@ -5565,7 +5565,7 @@ public final class Pattern implements java.io.Serializable {
      */
     public Stream<String> splitAsStream(final CharSequence input, Trace trace) {
         class MatcherIterator implements Iterator<String> {
-            private final Matcher matcher;
+            private final redosMatcher matcher;
             // The start position of the next sub-sequence of input
             // when current == input.length there are no more elements
             private int current;
@@ -5957,7 +5957,7 @@ public final class Pattern implements java.io.Serializable {
             return 0;
         String repeated = new String(new char[repeat_cnt]).replace("\0", pump);
         String attack_string = prefix + repeated + suffix;
-        Matcher m = matcher(attack_string, new Trace(threshold, false));
+        redosMatcher m = matcher(attack_string, new Trace(threshold, false));
         Trace t = m.matches();
                 //m.find();
 //        System.out.println("t.getMatchSteps() = " + t.getMatchSteps());

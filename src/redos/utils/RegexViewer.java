@@ -13,7 +13,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import redos.Trace;
-import redos.regex.Matcher;
+import redos.regex.redosMatcher;
 import redos.regex.Pattern;
 import redos.regex.Pattern.Node;
 import prefuse.Display;
@@ -147,7 +147,7 @@ public class RegexViewer {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String inputStr = input.getText();
-				Matcher m = pattern.matcher(inputStr, new Trace(10000, true));
+				redosMatcher m = pattern.matcher(inputStr, new Trace(10000, true));
 				Trace t = m.find();
 				curStep = 0;
 				btnn.setEnabled(true);
@@ -158,7 +158,7 @@ public class RegexViewer {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String inputStr = input.getText();
-				Matcher m = pattern.matcher(inputStr, new Trace(10000, true));
+				redosMatcher m = pattern.matcher(inputStr, new Trace(10000, true));
 				Trace t = m.find();
 				paintLog(pattern, t.getLogNode(), t.getLogIdx());
 				curStep++;
