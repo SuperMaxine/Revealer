@@ -519,7 +519,7 @@ public final class reodsMatcher implements MatchResult {
      *          matches this matcher's pattern
      * @throws CatastrophicBacktrackingException 
      */
-    public boolean matches(){
+    public Trace matches(){ // 修改
         return match(from, ENDANCHOR);
     }
 
@@ -609,7 +609,7 @@ public final class reodsMatcher implements MatchResult {
      *          sequence matches this matcher's pattern
      * @throws CatastrophicBacktrackingException 
      */
-    public boolean lookingAt(){
+    public Trace lookingAt(){   // 修改
         return match(from, NOANCHOR);
     }
 
@@ -1191,7 +1191,7 @@ public final class reodsMatcher implements MatchResult {
      * root of the state machine is called. The state machine will hold the
      * state of the match as it proceeds in this matcher.
      */
-    boolean match(int from, int anchor){
+    Trace match(int from, int anchor) { // 修改
         this.hitEnd = false;
         this.requireEnd = false;
         from        = from < 0 ? 0 : from;
@@ -1200,11 +1200,17 @@ public final class reodsMatcher implements MatchResult {
         for (int i = 0; i < groups.length; i++)
             groups[i] = -1;
         acceptMode = anchor;
+        redosPattern.trace = this.trace;
         boolean result = parentPattern.matchRoot.match(this, from, text, true);
         if (!result)
             this.first = -1;
         this.oldLast = this.last;
-        return result;
+        this.trace = redosPattern.trace;
+
+        trace.setEffectiveStr(text.toString());
+        trace.matchSuccess = result;
+        // @pGREAT this trace contain enough info
+        return trace;
     }
 
     /**

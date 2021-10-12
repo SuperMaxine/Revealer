@@ -147,7 +147,7 @@ public class RegexViewer {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String inputStr = input.getText();
-				reodsMatcher m = pattern.matcher(inputStr, new Trace(1e4, true));
+				reodsMatcher m = pattern.matcher(inputStr, new Trace(10000, true));
 				Trace t = m.find();
 				curStep = 0;
 				btnn.setEnabled(true);
@@ -158,7 +158,7 @@ public class RegexViewer {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String inputStr = input.getText();
-				reodsMatcher m = pattern.matcher(inputStr, new Trace(1e4, true));
+				reodsMatcher m = pattern.matcher(inputStr, new Trace(10000, true));
 				Trace t = m.find();
 				paintLog(pattern, t.getLogNode(), t.getLogIdx());
 				curStep++;

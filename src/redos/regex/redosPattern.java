@@ -413,7 +413,7 @@ public final class redosPattern implements java.io.Serializable {
      * @throws PatternSyntaxException            If the expression's syntax is
      *                                           invalid
      */
-    public static boolean matches(String regex, CharSequence input, Trace trace) {
+    public static Trace matches(String regex, CharSequence input, Trace trace) {    // 修改
         redosPattern p = redosPattern.compile(regex);
         reodsMatcher m = p.matcher(input, trace);
         return m.matches();
@@ -2869,8 +2869,9 @@ public final class redosPattern implements java.io.Serializable {
          * to see if the match occurred using all of the input.
          */
         boolean match(reodsMatcher reodsMatcher, int i, CharSequence seq) {
-            if (reodsMatcher.acceptMode == reodsMatcher.ENDANCHOR && i != reodsMatcher.to)
+            if (reodsMatcher.acceptMode == reodsMatcher.ENDANCHOR && i != reodsMatcher.to) {
                 return false;
+            }
             reodsMatcher.last = i;
             reodsMatcher.groups[0] = reodsMatcher.first;
             reodsMatcher.groups[1] = reodsMatcher.last;
@@ -3571,9 +3572,9 @@ public final class redosPattern implements java.io.Serializable {
         }
 
         /**
-         * 鏉╂瑤閲滈崙鑺ユ殶閻€劋绨亸鍞卬t閸栨牜娈憉nicode鐎涙顑佹潪顒�娲杝tring
+         * 鏉╂瑤閲滈崙鑺ユ殶閻€劋绨亸鍞卬t閸栨牜娈憉nicode鐎涙顑佹潪顒?娲杝tring
          * 
-         * @return slice閻ㄥ垺uffer鏉烆剛娈憉nicode鐎涙顑佹稉锟�
+         * @return slice閻ㄥ垺uffer鏉烆剛娈憉nicode鐎涙顑佹稉锟?
          */
         public String getSliceBuffer() {
             String result = "";
@@ -5306,9 +5307,9 @@ public final class redosPattern implements java.io.Serializable {
         }
 
         /**
-         * 鏉╂瑤閲滈崙鑺ユ殶閻€劋绨亸鍞卬t閸栨牜娈憉nicode鐎涙顑佹潪顒�娲杝tring
+         * 鏉╂瑤閲滈崙鑺ユ殶閻€劋绨亸鍞卬t閸栨牜娈憉nicode鐎涙顑佹潪顒?娲杝tring
          * 
-         * @return slice閻ㄥ垺uffer鏉烆剛娈憉nicode鐎涙顑佹稉锟�
+         * @return slice閻ㄥ垺uffer鏉烆剛娈憉nicode鐎涙顑佹稉锟?
          */
         public String getSliceBuffer() {
             String result = "";
@@ -6100,31 +6101,16 @@ public final class redosPattern implements java.io.Serializable {
             return "";
     }
 
-    public ArrayList<Set<Integer>> getSliceSets(Node node) {
-        ArrayList<Set<Integer>> result = new ArrayList<>();
-        Set<Integer> tmp = getMatchSet(node);
-        if (tmp == null || tmp.size() == 0)
-            return result;
-        else if (node instanceof SliceNode)
-            result.addAll(((SliceNode) node).getSliceSet());
-        else if (node instanceof BnM)
-            result.add(tmp);
-        else if (node instanceof CharProperty)
-            result.add(tmp);
-        else
-            return result;
-
-        return result;
-    }
-
-    public double getMatchingStepCnt(String prefix, String pump, String suffix, int max_length, double threshold) {
+    public int getMatchingStepCnt(String prefix, String pump, String suffix, int max_length, int threshold) {   // 修改
         int repeat_cnt = (max_length - prefix.length() - suffix.length()) / pump.length();
         if (repeat_cnt < 1)
             return 0;
         String repeated = new String(new char[repeat_cnt]).replace("\0", pump);
         String attack_string = prefix + repeated + suffix;
         reodsMatcher m = matcher(attack_string, new Trace(threshold, false));
-        Trace t = m.find();
+        Trace t = m.matches();
+                //m.find();
+//        System.out.println("t.getMatchSteps() = " + t.getMatchSteps());
         return t.getMatchSteps();
     }
 
