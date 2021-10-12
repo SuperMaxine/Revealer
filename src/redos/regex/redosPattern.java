@@ -6101,6 +6101,23 @@ public final class redosPattern implements java.io.Serializable {
             return "";
     }
 
+    public ArrayList<Set<Integer>> getSliceSets(Node node) {
+        ArrayList<Set<Integer>> result = new ArrayList<>();
+        Set<Integer> tmp = getMatchSet(node);
+        if (tmp == null || tmp.size() == 0)
+            return result;
+        else if (node instanceof SliceNode)
+            result.addAll(((SliceNode) node).getSliceSet());
+        else if (node instanceof BnM)
+            result.add(tmp);
+        else if (node instanceof CharProperty)
+            result.add(tmp);
+        else
+            return result;
+
+        return result;
+    }
+
     public int getMatchingStepCnt(String prefix, String pump, String suffix, int max_length, int threshold) {   // 修改
         int repeat_cnt = (max_length - prefix.length() - suffix.length()) / pump.length();
         if (repeat_cnt < 1)

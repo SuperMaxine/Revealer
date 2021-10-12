@@ -141,18 +141,20 @@ public class RedosTester {
 	}
 
 	public static void main(String[] args) throws Exception {
-		long startTime = System.nanoTime();
-//		String regex = "a+a+";
-//		RedosTester.testSingleRegex(regex);
-//		if (args.length == 1)
-//			RedosTester.testSingleRegex(args[0]);
-//		else if (args.length == 2)
-			RedosTester.vulValidation("", "");
-//		else
-//			RedosTester.testDataset();
+// 		long startTime = System.nanoTime();
+// //		String regex = "a+a+";
+// //		RedosTester.testSingleRegex(regex);
+// //		if (args.length == 1)
+// //			RedosTester.testSingleRegex(args[0]);
+// //		else if (args.length == 2)
+// 			RedosTester.vulValidation("", "");
+// //		else
+// //			RedosTester.testDataset();
+//
+// 		long endTime = System.nanoTime();
+// 		System.out.println((endTime - startTime)/1e9);
 
-		long endTime = System.nanoTime();
-		System.out.println((endTime - startTime)/1e9);
+		RedosTester.testDataset();
 	}
 
 }
