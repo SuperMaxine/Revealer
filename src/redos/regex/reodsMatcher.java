@@ -11,12 +11,12 @@ import java.util.regex.MatchResult;
 import redos.Trace;
 
 // We modify some function for instrumentation
-public final class Matcher implements MatchResult {
+public final class reodsMatcher implements MatchResult {
 
     /**
      * The Pattern object that created this Matcher.
      */
-    Pattern parentPattern;
+    redosPattern parentPattern;
 
     /**
      * The storage used by groups. They may contain invalid values if
@@ -122,13 +122,13 @@ public final class Matcher implements MatchResult {
     /**
      * No default constructor.
      */
-    Matcher() {
+    reodsMatcher() {
     }
 
     /**
      * All matchers have the state used by Pattern during a match.
      */
-    Matcher(Pattern parent, CharSequence text, Trace trace) {
+    reodsMatcher(redosPattern parent, CharSequence text, Trace trace) {
         this.parentPattern = parent;
         this.text = text;
 
@@ -152,7 +152,7 @@ public final class Matcher implements MatchResult {
      *
      * @return  The pattern for which this matcher was created
      */
-    public Pattern pattern() {
+    public redosPattern pattern() {
         return parentPattern;
     }
 
@@ -165,7 +165,7 @@ public final class Matcher implements MatchResult {
      * @since 1.5
      */
     public MatchResult toMatchResult() {
-        Matcher result = new Matcher(this.parentPattern, text.toString(), this.trace);
+        reodsMatcher result = new reodsMatcher(this.parentPattern, text.toString(), this.trace);
         result.first = this.first;
         result.last = this.last;
         result.groups = this.groups.clone();
@@ -188,7 +188,7 @@ public final class Matcher implements MatchResult {
       *          If newPattern is <tt>null</tt>
       * @since 1.5
       */
-    public Matcher usePattern(Pattern newPattern) {
+    public reodsMatcher usePattern(redosPattern newPattern) {
         if (newPattern == null)
             throw new IllegalArgumentException("Pattern cannot be null");
         parentPattern = newPattern;
@@ -214,7 +214,7 @@ public final class Matcher implements MatchResult {
      *
      * @return  This matcher
      */
-    public Matcher reset() {
+    public reodsMatcher reset() {
         first = -1;
         last = 0;
         oldLast = -1;
@@ -242,7 +242,7 @@ public final class Matcher implements MatchResult {
      *
      * @return  This matcher
      */
-    public Matcher reset(CharSequence input) {
+    public reodsMatcher reset(CharSequence input) {
         text = input;
         return reset();
     }
@@ -555,9 +555,9 @@ public final class Matcher implements MatchResult {
                 groups[i] = -1;
             trace_result = false;
         } else {
-        	Pattern.trace = this.trace;
+        	redosPattern.trace = this.trace;
         	trace_result = search(nextSearchIndex);
-        	this.trace = Pattern.trace;
+        	this.trace = redosPattern.trace;
         }
         
         trace.setEffectiveStr(text.toString());
@@ -619,7 +619,7 @@ public final class Matcher implements MatchResult {
      *
      * This method produces a <code>String</code> that will work
      * as a literal replacement <code>s</code> in the
-     * <code>appendReplacement</code> method of the {@link Matcher} class.
+     * <code>appendReplacement</code> method of the {@link reodsMatcher} class.
      * The <code>String</code> produced will match the sequence of characters
      * in <code>s</code> treated as a literal sequence. Slashes ('\') and
      * dollar signs ('$') will be given no special meaning.
@@ -722,7 +722,7 @@ public final class Matcher implements MatchResult {
      *          If the replacement string refers to a capturing group
      *          that does not exist in the pattern
      */
-    public Matcher appendReplacement(StringBuffer sb, String replacement) {
+    public reodsMatcher appendReplacement(StringBuffer sb, String replacement) {
 
         // If no match, return error
         if (first < 0)
@@ -964,7 +964,7 @@ public final class Matcher implements MatchResult {
      * @return  this matcher
      * @since 1.5
      */
-    public Matcher region(int start, int end) {
+    public reodsMatcher region(int start, int end) {
         if ((start < 0) || (start > getTextLength()))
             throw new IndexOutOfBoundsException("start");
         if ((end < 0) || (end > getTextLength()))
@@ -1050,7 +1050,7 @@ public final class Matcher implements MatchResult {
      * @see java.util.regex.Matcher#hasTransparentBounds
      * @since 1.5
      */
-    public Matcher useTransparentBounds(boolean b) {
+    public reodsMatcher useTransparentBounds(boolean b) {
         transparentBounds = b;
         return this;
     }
@@ -1096,7 +1096,7 @@ public final class Matcher implements MatchResult {
      * @see java.util.regex.Matcher#hasAnchoringBounds
      * @since 1.5
      */
-    public Matcher useAnchoringBounds(boolean b) {
+    public reodsMatcher useAnchoringBounds(boolean b) {
         anchoringBounds = b;
         return this;
     }
@@ -1200,12 +1200,12 @@ public final class Matcher implements MatchResult {
         for (int i = 0; i < groups.length; i++)
             groups[i] = -1;
         acceptMode = anchor;
-        Pattern.trace = this.trace;
+        redosPattern.trace = this.trace;
         boolean result = parentPattern.matchRoot.match(this, from, text, true);
         if (!result)
             this.first = -1;
         this.oldLast = this.last;
-        this.trace = Pattern.trace;
+        this.trace = redosPattern.trace;
 
         trace.setEffectiveStr(text.toString());
         trace.matchSuccess = result;

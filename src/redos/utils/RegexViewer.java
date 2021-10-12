@@ -13,9 +13,9 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import redos.Trace;
-import redos.regex.Matcher;
-import redos.regex.Pattern;
-import redos.regex.Pattern.Node;
+import redos.regex.reodsMatcher;
+import redos.regex.redosPattern;
+import redos.regex.redosPattern.Node;
 import prefuse.Display;
 import prefuse.Visualization;
 import prefuse.action.ActionList;
@@ -94,7 +94,7 @@ public class RegexViewer {
      * @param to
      * @param nodeName
      */
-    public static void paintRegex(Pattern pattern, Table nodes, Table edges, boolean directed, String from, String to, String nodeName) {
+    public static void paintRegex(redosPattern pattern, Table nodes, Table edges, boolean directed, String from, String to, String nodeName) {
     	g = new Graph(nodes, edges, directed, from, to);
     	
     	vis = new Visualization();
@@ -147,7 +147,7 @@ public class RegexViewer {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String inputStr = input.getText();
-				Matcher m = pattern.matcher(inputStr, new Trace(10000, true));
+				reodsMatcher m = pattern.matcher(inputStr, new Trace(10000, true));
 				Trace t = m.find();
 				curStep = 0;
 				btnn.setEnabled(true);
@@ -158,7 +158,7 @@ public class RegexViewer {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String inputStr = input.getText();
-				Matcher m = pattern.matcher(inputStr, new Trace(10000, true));
+				reodsMatcher m = pattern.matcher(inputStr, new Trace(10000, true));
 				Trace t = m.find();
 				paintLog(pattern, t.getLogNode(), t.getLogIdx());
 				curStep++;
@@ -199,7 +199,7 @@ public class RegexViewer {
         jf.setVisible(true);
     }
     
-    public static void paintLog(Pattern p, List<Node> logNode, List<Integer> logIdx, int color) {
+    public static void paintLog(redosPattern p, List<Node> logNode, List<Integer> logIdx, int color) {
     	// Iterate over VisualItems in Visualization vis
 		Iterator<NodeItem> v_it = vis.items("graph.nodes");
     	while(v_it.hasNext()) {
@@ -212,7 +212,7 @@ public class RegexViewer {
     	vis.repaint();
     }
     
-    public static void paintLog(Pattern p, List<Node> logNode, List<Integer> logIdx) {
+    public static void paintLog(redosPattern p, List<Node> logNode, List<Integer> logIdx) {
     	paintLog(p, logNode, logIdx, ColorLib.rgb(150, 150, 200));
     }
 }

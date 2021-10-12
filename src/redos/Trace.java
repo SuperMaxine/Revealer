@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import redos.regex.Pattern.Node;
+import redos.regex.redosPattern.Node;
 
 /*
  * The trace of match detail.

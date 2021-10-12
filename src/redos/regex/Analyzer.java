@@ -16,13 +16,13 @@ import com.alibaba.fastjson.JSONObject;
 import org.javatuples.Quartet;
 import org.javatuples.Triplet;
 
-import redos.regex.Pattern.Branch;
-import redos.regex.Pattern.Node;
-import redos.regex.Pattern.Ques;
+import redos.regex.redosPattern.Branch;
+import redos.regex.redosPattern.Node;
+import redos.regex.redosPattern.Ques;
 import redos.utils.PatternUtils;
 
 public class Analyzer {
-    Pattern pattern;
+    redosPattern pattern;
     int maxLength;
 
     boolean possible_vulnerability;
@@ -1174,7 +1174,7 @@ public class Analyzer {
         EXIST, NOT_EXIST, NOT_SURE
     }
 
-    public Analyzer(Pattern regexPattern, int max_length) {
+    public Analyzer(redosPattern regexPattern, int max_length) {
         pattern = regexPattern;
         maxLength = max_length;
         initialize();
