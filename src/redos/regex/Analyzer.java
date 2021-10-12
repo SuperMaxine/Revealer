@@ -3,7 +3,6 @@ package redos.regex;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.alibaba.fastjson.JSONObject;
@@ -11,7 +10,6 @@ import com.alibaba.fastjson.JSONObject;
 import org.javatuples.Quartet;
 import org.javatuples.Triplet;
 
-import redos.Trace;
 import redos.regex.redosPattern.Branch;
 import redos.regex.redosPattern.Node;
 import redos.regex.redosPattern.Ques;
@@ -32,10 +30,135 @@ public class Analyzer {
 
     String regex;
 
+    private class finalVul {
+        VulType type;
+        VulStructure vul;
+        VulStructure vul2;
+        ArrayList<Set<Integer>> infix;
+        StringBuffer prefix;
+        StringBuffer pump;
+        StringBuffer suffix;
+        finalVul(VulStructure newVul, VulType vulType){
+            type = vulType;
+            vul = newVul;
+            infix = new ArrayList<>();
+
+            prefix = newVul.prefix;
+            suffix = newVul.suffix;
+        }
+
+        finalVul(VulStructure newVul, VulStructure newVul2){
+            type = VulType.POA;
+            vul = newVul;
+            vul2 = newVul2;
+            infix = new ArrayList<>();
+
+            prefix = newVul.prefix;
+            suffix = newVul2.suffix;
+        }
+
+        /**
+         * 获取用于重复的中缀字符串
+         */
+        public void getInfix() {
+            // EOD、EOA、NQ
+            if(type == VulType.ONE_COUNTING){
+                // Collections.sort(vul.pumpSets,(l1, l2) -> Integer.compare(l1.size(), l2.size()));
+                ListIterator aItr = vul.pumpSets.listIterator();
+                while(aItr.hasNext()){
+                    ArrayList<Set<Integer>> a = (ArrayList<Set<Integer>>) aItr.next();
+                    // ListIterator bItr = vul.pumpSets.listIterator();
+                    ListIterator bItr = vul.pumpSets.listIterator(aItr.previousIndex());
+                    while(bItr.hasNext()){
+                        ArrayList<Set<Integer>> b = (ArrayList<Set<Integer>>) bItr.next();
+                        if(b.size() != a.size())break;
+                        if(redosPattern.setsArrayEqual(a,b)){
+                            infix.addAll(a);
+                        }
+                    }
+                }
+                // POA
+            }
+            else if(type == VulType.POA){
+
+                // 如果中间间隔内容：先获取中间内容，再将其与首个Counting拼接，判断是否有能与第二个Counting完全重合的路径
+                if(vul2.path_end == null || onDirectNext(vul2.path_end, vul.path_start)){
+                    ArrayList<Set<Integer>> mid = getDirectPathSet(vul2.path_end, vul.path_start);
+                    ListIterator aItr = vul2.pumpSets.listIterator();
+                    while(aItr.hasNext()){
+                        ArrayList<Set<Integer>> a = (ArrayList<Set<Integer>>) aItr.next();
+                        a.addAll(mid);
+                        ListIterator bItr = vul.pumpSets.listIterator();
+                        while (bItr.hasNext()) {
+                            ArrayList<Set<Integer>> b = (ArrayList<Set<Integer>>) bItr.next();
+                            if (b.size() != a.size()) break;
+                            if (redosPattern.setsArrayEqual(a, b)) {
+                                infix.addAll(a);
+                            }
+                        }
+                    }
+                }
+                else if(vul.path_end == null || onDirectNext(vul.path_end, vul2.path_start)){
+                    ArrayList<Set<Integer>> mid = getDirectPathSet(vul.path_end, vul2.path_start);
+                    ListIterator aItr = vul.pumpSets.listIterator();
+                    while(aItr.hasNext()){
+                        ArrayList<Set<Integer>> a = (ArrayList<Set<Integer>>) aItr.next();
+                        a.addAll(mid);
+                        ListIterator bItr = vul2.pumpSets.listIterator();
+                        while (bItr.hasNext()) {
+                            ArrayList<Set<Integer>> b = (ArrayList<Set<Integer>>) bItr.next();
+                            if (b.size() != a.size()) break;
+                            if (redosPattern.setsArrayEqual(a, b)) {
+                                infix.addAll(a);
+                            }
+                        }
+                    }
+                }
+                // 如果相邻，判断有没有路径完全重合
+                else if(vul2.path_end.direct_next == vul.path_start || vul.path_end.direct_next == vul.path_start) {
+                    // Collections.sort(vul.pumpSets, (l1, l2) -> Integer.compare(l1.size(), l2.size()));
+                    // Collections.sort(vul2.pumpSets, (l1, l2) -> Integer.compare(l1.size(), l2.size()));
+                    ListIterator aItr = vul.pumpSets.listIterator();
+                    while (aItr.hasNext()) {
+                        ArrayList<Set<Integer>> a = (ArrayList<Set<Integer>>) aItr.next();
+                        ListIterator bItr = vul2.pumpSets.listIterator();
+                        while (bItr.hasNext()) {
+                            ArrayList<Set<Integer>> b = (ArrayList<Set<Integer>>) bItr.next();
+                            if (b.size() != a.size()) break;
+                            if (redosPattern.setsArrayEqual(a, b)) {
+                                infix.addAll(a);
+                            }
+                        }
+                    }
+                }
+
+            }
+            // SLQ：判断前缀是否是中缀的前缀
+            else if(type == VulType.SLQ){
+                ArrayList<Set<Integer>> prefixSets = getDirectPathSet(pattern.root, vul.path_start);
+                ListIterator aItr = vul.pumpSets.listIterator();
+                while(aItr.hasNext()) {
+                    ArrayList<Set<Integer>> a = (ArrayList<Set<Integer>>) aItr.next();
+                    if(redosPattern.startsWith(a, prefixSets)){
+                        infix.addAll(prefixSets);
+                        infix.addAll(a);
+                        break;
+                    };
+                }
+            }
+        }
+
+        public void getpump(){
+            pump = new StringBuffer();
+            for(Set<Integer> tmp : infix){
+                pump.append(tmp.iterator().next());
+            }
+        }
+    }
+
     private class VulStructure {
         StringBuffer prefix;
         StringBuffer pump;
-        ArrayList<Set<Integer>> pumpSet;
         ArrayList<ArrayList<Set<Integer>>> pumpSets;
         ArrayList<ArrayList<Set<Integer>>> pumpSets2;
         ArrayList<Set<Integer>> infix;
@@ -1528,12 +1651,19 @@ public class Analyzer {
                         iterator.remove();
                     }
                 }
+                if(pumpResult.size()>0)
+                    pumpStr = pumpResult.keySet().iterator().next();
 
                 if (pumpStr != null && pumpStr.length() > 0) {
                     pump.append(pumpStr);
                     prefix.append(getPrefix());
                     suffix.append(getSuffix());
                     result = Existance.EXIST;
+
+                    for (Map.Entry<String, ArrayList<Set<Integer>>> entry : pumpResult.entrySet()) {
+                        pumpSets.add(entry.getValue());
+                    }
+                    Collections.sort(pumpSets,(l1, l2) -> Integer.compare(l1.size(), l2.size()));
                 }
             }
         }
@@ -1611,10 +1741,12 @@ public class Analyzer {
         private void initialize() {
             prefix = new StringBuffer();
             pump = new StringBuffer();
-            pumpSet = new ArrayList<>();
             suffix = new StringBuffer();
             pathSharing = new ArrayList<ArrayList<Node>>();
             fullPath = new ArrayList<Node>();
+
+            pumpSets = new ArrayList<>();
+            pumpSets2 = new ArrayList<>();
         }
     }
 
@@ -1674,6 +1806,8 @@ public class Analyzer {
         //     possibleVuls.add(newVul);
         // }
 
+
+
         // Todo: 测试用临时代码
         for (Node node  : loopNodes) {
             // VulStructure newVul = new VulStructure(node);
@@ -1683,7 +1817,9 @@ public class Analyzer {
 
         for (VulStructure vulCase : possibleVuls) {
             vulCase.checkPathSharing();
-            vulCase.getInfix();
+            // vulCase.getInfix();
+            // System.out.println(vulCase.infix);
+
             // if (vulCase.result == Existance.EXIST) {
             //     if (checkResult(vulCase.prefix.toString(), vulCase.pump.toString(), vulCase.suffix.toString(),
             //             maxLength, threshold)) {
@@ -1719,6 +1855,29 @@ public class Analyzer {
             //     }
             // }
         }
+
+        ArrayList<finalVul> possibleFinalVuls = new ArrayList<finalVul>();
+        for(int i = 0; i < possibleVuls.size(); i++){
+            possibleFinalVuls.add(new finalVul(possibleVuls.get(i), VulType.ONE_COUNTING));
+            possibleFinalVuls.add(new finalVul(possibleVuls.get(i), VulType.SLQ));
+            for(int j = i+1; j < possibleVuls.size(); j++){
+                possibleFinalVuls.add(new finalVul(possibleVuls.get(i), possibleVuls.get(j)));
+            }
+        }
+
+        for(finalVul vulCase : possibleFinalVuls){
+            vulCase.getInfix();
+            vulCase.getpump();
+            if (vulCase.pump.length()!=0 && checkResult(vulCase.prefix.toString(), vulCase.pump.toString(), vulCase.suffix.toString(),
+                    maxLength, threshold)) {
+                // vulCase.printResult(outVul, index);
+                possible_vulnerability = true;
+                break;
+            }
+        }
+
+        System.out.println(possibleFinalVuls);
+
     }
 
     private boolean checkResult(String prefix, String pump, String suffix, int maxLength, double threshold) {

@@ -113,6 +113,9 @@ public class RedosTester {
 						Analyzer redosAnalyzer = new Analyzer(p, max_length);
 						redosAnalyzer.doStaticAnalysis();
 						redosAnalyzer.doDynamicAnalysis(outVul, cnt, threshold);
+
+						if (redosAnalyzer.isVulnerable())
+							System.out.print(regex+"Contains vulnerablity\n");
 					} catch (java.util.regex.PatternSyntaxException e) {}
 					cnt += 1;
 				}
@@ -133,12 +136,12 @@ public class RedosTester {
 // 		RedosTester.testSingleRegex("xyz(([a1].[c3])*).([6c]([7a].[9c])*)xyz");
 // 		RedosTester.testSingleRegex("xyz((abc)*a)\\w(c(a\\wc)*)xyz");
 // 		RedosTester.testSingleRegex("(a+b?a+)+$");
-		RedosTester.testSingleRegex("(\\wbc+)*");
+// 		RedosTester.testSingleRegex("(\\wbc+)*");
 ////			RedosTester.testSingleRegex("a*");
 //		else if (args.length == 2)
 //			RedosTester.vulValidation(args[0], args[1]);
 //		else
-// 			RedosTester.testDataset();
+			RedosTester.testDataset();
 	}
 
 }
