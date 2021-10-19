@@ -2,8 +2,6 @@ package redos.regex;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Path;
 import java.util.*;
 
 import com.alibaba.fastjson.JSONObject;
@@ -12,13 +10,13 @@ import org.javatuples.Quartet;
 import org.javatuples.Triplet;
 
 import redos.Trace;
-import redos.regex.Pattern.Branch;
-import redos.regex.Pattern.Node;
-import redos.regex.Pattern.Ques;
+import redos.regex.redosPattern.Branch;
+import redos.regex.redosPattern.Node;
+import redos.regex.redosPattern.Ques;
 import redos.utils.PatternUtils;
 
 public class Analyzer {
-    Pattern pattern;
+    redosPattern redosPattern;
     int maxLength;
 
     boolean possible_vulnerability;
@@ -73,8 +71,8 @@ public class Analyzer {
                     max = 0;
                 }
                 else {
-                    min = pattern.getMinCount(node);
-                    max = pattern.getMaxCount(node);
+                    min = redosPattern.getMinCount(node);
+                    max = redosPattern.getMaxCount(node);
                     if (max > 10)
                         max = 10;
                 }
@@ -84,7 +82,7 @@ public class Analyzer {
                 if (nextSliceSetMendatory == null)
                     nextSliceSetMendatory = new HashMap<Node, MatchGenerator>();
                 nextSliceSetMendatory.put(node, generator);
-                if (!pattern.isSlice(curNode)) {
+                if (!redosPattern.isSlice(curNode)) {
                     if (nextSliceSetSatisfied == null)
                         nextSliceSetSatisfied = new HashMap<Node, MatchGenerator>();
                     nextSliceSetSatisfied.put(node, generator);
@@ -95,7 +93,7 @@ public class Analyzer {
                 if (nextSliceSetUnsatisfied == null)
                     nextSliceSetUnsatisfied = new HashMap<Node, MatchGenerator>();
                 nextSliceSetUnsatisfied.put(node, generator);
-                if (!pattern.isSlice(curNode)) {
+                if (!redosPattern.isSlice(curNode)) {
                     if (nextSliceSetSatisfied == null)
                         nextSliceSetSatisfied = new HashMap<Node, MatchGenerator>();
                     nextSliceSetSatisfied.put(node, generator);
@@ -237,10 +235,10 @@ public class Analyzer {
                 }
                 else
                     curCntSet.put(nextGenerator, lastCnt);
-                if (pattern.isSlice(sliceNode)) { // upadate matching path
-                    matchingPath.append(pattern.getSlice(sliceNode));
+                if (redosPattern.isSlice(sliceNode)) { // upadate matching path
+                    matchingPath.append(redosPattern.getSlice(sliceNode));
                     // 改造：将slice内容放入matchingSets
-                    matchingSets.addAll(pattern.getSliceSets(sliceNode));
+                    matchingSets.addAll(redosPattern.getSliceSets(sliceNode));
                 }
 
                 cnt = curCntSet.get(nextGenerator); // update cur cnt
@@ -256,7 +254,7 @@ public class Analyzer {
             }
 
             public String pushForward(Node sliceNode, MatchGenerator nextGeneratorSource, int ch) {
-                String str = pattern.checkChar(sliceNode, ch);
+                String str = redosPattern.checkChar(sliceNode, ch);
                 if (str == null)
                     return null;
                 boolean isEnd = curGenerator.isEnd; // get isEnd flag
@@ -270,7 +268,7 @@ public class Analyzer {
                     curCntSet.put(nextGenerator, lastCnt + 1);
                 else
                     curCntSet.put(nextGenerator, lastCnt);
-                if (pattern.isSlice(sliceNode)) { // upadate matching path
+                if (redosPattern.isSlice(sliceNode)) { // upadate matching path
                     matchingPath.append(PatternUtils.convertString(ch) + str);
                 }
                 cnt = curCntSet.get(nextGenerator); // update cur cnt
@@ -288,7 +286,7 @@ public class Analyzer {
 
             // 改造: 改造出一个依靠Sets的pushForward
             public List<Set<Integer>> pushForward(Node sliceNode, MatchGenerator nextGeneratorSource, Set<Integer> ch) {
-                List<Set<Integer>> str = pattern.checkSet(sliceNode, ch);
+                List<Set<Integer>> str = redosPattern.checkSet(sliceNode, ch);
                 if (str == null)
                     return null;
                 ch = str.get(0);
@@ -304,7 +302,7 @@ public class Analyzer {
                     curCntSet.put(nextGenerator, lastCnt + 1);
                 else
                     curCntSet.put(nextGenerator, lastCnt);
-                if (pattern.isSlice(sliceNode)) { // upadate matching path
+                if (redosPattern.isSlice(sliceNode)) { // upadate matching path
                     // matchingPath.append(PatternUtils.convertString(ch) + str);
                     // 修改: 在此处获得mathcingSets，且不影响matchingPath
                     matchingSets.add(ch);
@@ -397,7 +395,7 @@ public class Analyzer {
                 nextCharSetFull = new HashSet<Integer>();
                 nextCharSetMap = new HashMap<Triplet<Driver, Node, MatchGenerator>, Set<Integer>>();
                 for (Triplet<Driver, Node, MatchGenerator> triplet : nextSlices) {
-                    Set<Integer> charSet = pattern.getMatchSet(triplet.getValue1());
+                    Set<Integer> charSet = redosPattern.getMatchSet(triplet.getValue1());
                     if (charSet != null) {
                         nextCharSetMap.put(triplet, charSet);
                         nextCharSetFull.addAll(charSet);
@@ -424,7 +422,7 @@ public class Analyzer {
                             nextSliceNode = new HashSet<Node>();
                         nextSliceNode.add(triplet.getValue1());
                     }
-                    String failedCore = pattern.getUnMatch(nextSliceNode);
+                    String failedCore = redosPattern.getUnMatch(nextSliceNode);
                     if (failedCore != null) {
                         failedMatch = driver.matchingPath.toString() + failedCore;
                         break;
@@ -521,7 +519,7 @@ public class Analyzer {
                 MatchGenerator tmpGenerator = headGenerator;
                 index = 0;
                 while (directedPath.get(index).sub_next == null && directedPath.get(index).new_atoms == null
-                        && !pattern.isSlice(directedPath.get(index)) && index < directedPath.size() - 1)
+                        && !redosPattern.isSlice(directedPath.get(index)) && index < directedPath.size() - 1)
                     index += 1;
                 do {
                     lastGenerator = tmpGenerator;
@@ -641,7 +639,7 @@ public class Analyzer {
                 Node lastNode = lastGeneratorTmp.curNode;
                 MatchGenerator nextGenerator = lastGeneratorTmp;
 
-                if (node.sub_next != null || (node.new_atoms != null && next_node != null) || pattern.isSlice(node)) { // cur
+                if (node.sub_next != null || (node.new_atoms != null && next_node != null) || redosPattern.isSlice(node)) { // cur
                     // is
                     // meaningful
                     if (allGenerators == null)
@@ -662,7 +660,7 @@ public class Analyzer {
                             p = p.direct_prev;
                         }
                         if (p == null || p == lastNode.direct_next) {
-                            if (pattern.isSlice(node)) { // last generator is slice type
+                            if (redosPattern.isSlice(node)) { // last generator is slice type
                                 lastGeneratorTmp.addMendatoryCase(node, newGenerator);
                             }
                             else { // equal to its next
@@ -672,7 +670,7 @@ public class Analyzer {
                         }
                         else if (p == lastNode.sub_next
                                 || lastNode.new_atoms != null && Arrays.asList(lastNode.new_atoms).contains(p)) {
-                            if (pattern.isSlice(node)) { // last generator is slice type
+                            if (redosPattern.isSlice(node)) { // last generator is slice type
                                 lastGeneratorTmp.addUnsatisfiedCase(node, newGenerator);
                             }
                             else { // equal to its next
@@ -685,7 +683,7 @@ public class Analyzer {
                         }
                     }
                     else { // the begin Generator
-                        if (pattern.isSlice(node)) { // last generator is slice type
+                        if (redosPattern.isSlice(node)) { // last generator is slice type
                             lastGeneratorTmp.addMendatoryCase(node, newGenerator);
                         }
                         else { // equal to its next
@@ -696,7 +694,7 @@ public class Analyzer {
                     if (sub) {
                         Node p = node.direct_next;
                         while (p != null) {
-                            if (p.sub_next != null || p.new_atoms != null || pattern.isSlice(p))
+                            if (p.sub_next != null || p.new_atoms != null || redosPattern.isSlice(p))
                                 break;
                             p = p.direct_next;
                         }
@@ -917,7 +915,7 @@ public class Analyzer {
                     // }
                     else if (sliceRemain.size() > str.size()
                             // && sliceRemain.subList(0, str.size()).equals(str)) {
-                            && Pattern.setsArrayEqual(sliceRemain.subList(0, str.size()), str)) {
+                            && redosPattern.setsArrayEqual(sliceRemain.subList(0, str.size()), str)) {
                         // sliceRemain = (ArrayList<Set<Integer>>) sliceRemain.subList(str.size(), sliceRemain.size());
                         sliceRemain = new ArrayList<Set<Integer>>(str.subList(str.size(), sliceRemain.size()));
                         nonSliceDriver.add(newDriver);
@@ -929,13 +927,13 @@ public class Analyzer {
                     // }
                     else if (sliceRemain.size() < str.size()
                             // && sliceRemain.equals(str.subList(0, sliceRemain.size()))) {
-                            && Pattern.setsArrayEqual(sliceRemain, str.subList(0, sliceRemain.size()))) {
+                            && redosPattern.setsArrayEqual(sliceRemain, str.subList(0, sliceRemain.size()))) {
                         // sliceRemain = (ArrayList<Set<Integer>>) str.subList(sliceRemain.size(), str.size());
                         sliceRemain = new ArrayList<Set<Integer>>(str.subList(sliceRemain.size(), str.size()));
                         nonSliceDriver.add(driverRemain);
                     }
                     // else if (!sliceRemain.equals(str))
-                    else if (!Pattern.setsArrayEqual(sliceRemain, str))
+                    else if (!redosPattern.setsArrayEqual(sliceRemain, str))
                         return null;
                 }
                 else
@@ -1040,7 +1038,7 @@ public class Analyzer {
                         }
                     }
                     // else if (remainStr.equals(str.substring(1))) {
-                    else if (Pattern.setsArrayEqual(remainStr,str.subList(1,str.size()))) {
+                    else if (redosPattern.setsArrayEqual(remainStr,str.subList(1,str.size()))) {
                         driver.setAs(newDriver);
                         return true;
                     }
@@ -1050,10 +1048,10 @@ public class Analyzer {
                             // A: 只有在pushForward传回str的就是ch的时候，原来的remainStr和str.substring才会相等
                             // Todo: 暂时还用setsArrayEqual代替，等待发现问题再修复
                             // && str.substring(1, 1 + remainStr.length()) == remainStr) {
-                            && Pattern.setsArrayEqual(str.subList(1, 1 + remainStr.size()), remainStr)) {
+                            && redosPattern.setsArrayEqual(str.subList(1, 1 + remainStr.size()), remainStr)) {
                         newDriver.getNextSlices();
                         // if (str.substring(1).startsWith(remainStr)
-                        if (Pattern.startsWith(str.subList(1, str.size()), remainStr)
+                        if (redosPattern.startsWith(str.subList(1, str.size()), remainStr)
                                 // && pushSliceToSatisfied(newDriver, str.substring(1 + remainStr.length()))) {
                                 && pushSliceToSatisfied(newDriver, str.subList(1 + remainStr.size(), str.size()))) {
                             driver.setAs(newDriver);
@@ -1206,8 +1204,8 @@ public class Analyzer {
         private ArrayList<Set<Integer>> getPumpSet(){
             System.out.println(pathSharing);
             ArrayList<Set<Integer>> resultSet = new ArrayList<>();
-            for(Pattern.Node node : pathSharing.get(0)){
-                resultSet.add(pattern.getMatchSetDIY(node));
+            for(redosPattern.Node node : pathSharing.get(0)){
+                resultSet.add(redosPattern.getMatchSetDIY(node));
             }
             // 清除空集合
             resultSet.removeIf(t -> t.contains(-2));
@@ -1428,7 +1426,7 @@ public class Analyzer {
                     while(bItr.hasNext()){
                        ArrayList<Set<Integer>> b = (ArrayList<Set<Integer>>) bItr.next();
                        if(b.size() != a.size())break;
-                       if(Pattern.setsArrayEqual(a,b)){
+                       if(redosPattern.setsArrayEqual(a,b)){
                            infix.addAll(a);
                        }
                    }
@@ -1446,7 +1444,7 @@ public class Analyzer {
                         while (bItr.hasNext()) {
                             ArrayList<Set<Integer>> b = (ArrayList<Set<Integer>>) bItr.next();
                             if (b.size() != a.size()) break;
-                            if (Pattern.setsArrayEqual(a, b)) {
+                            if (redosPattern.setsArrayEqual(a, b)) {
                                 infix.addAll(a);
                             }
                         }
@@ -1463,7 +1461,7 @@ public class Analyzer {
                         while (bItr.hasNext()) {
                             ArrayList<Set<Integer>> b = (ArrayList<Set<Integer>>) bItr.next();
                             if (b.size() != a.size()) break;
-                            if (Pattern.setsArrayEqual(a, b)) {
+                            if (redosPattern.setsArrayEqual(a, b)) {
                                 infix.addAll(a);
                             }
                         }
@@ -1478,7 +1476,7 @@ public class Analyzer {
                         while (bItr.hasNext()) {
                             ArrayList<Set<Integer>> b = (ArrayList<Set<Integer>>) bItr.next();
                             if (b.size() != a.size()) break;
-                            if (Pattern.setsArrayEqual(a, b)) {
+                            if (redosPattern.setsArrayEqual(a, b)) {
                                 infix.addAll(a);
                             }
                         }
@@ -1486,11 +1484,11 @@ public class Analyzer {
                 }
             // SLQ：判断前缀是否是中缀的前缀
             }else if(type == VulType.SLQ){
-                ArrayList<Set<Integer>> prefixSets = getDirectPathSet(pattern.root, path_start);
+                ArrayList<Set<Integer>> prefixSets = getDirectPathSet(redosPattern.root, path_start);
                 ListIterator aItr = pumpSets.listIterator();
                 while(aItr.hasNext()) {
                     ArrayList<Set<Integer>> a = (ArrayList<Set<Integer>>) aItr.next();
-                    if(Pattern.startsWith(a, prefixSets)){
+                    if(redosPattern.startsWith(a, prefixSets)){
                         infix.addAll(prefixSets);
                         infix.addAll(a);
                         break;
@@ -1518,10 +1516,10 @@ public class Analyzer {
                 for(Iterator<String> iterator = pumpResult.keySet().iterator();iterator.hasNext(); ) {
                     String key = iterator.next();
 
-                    Pattern r = Pattern.compile(regex.substring(beginFlag, endFlag));
+                    redosPattern r = redosPattern.compile(regex.substring(beginFlag, endFlag));
                     Trace t = new Trace(1e4);
                     CharSequence cs = key;
-                    Matcher m = r.matcher(cs, t);
+                    redosMatcher m = r.matcher(cs, t);
                     Trace k = m.find();
 
                     if(k.str.length() != key.length()){
@@ -1530,10 +1528,10 @@ public class Analyzer {
                 }
                 for (Map.Entry<String, ArrayList<Set<Integer>>> entry : pumpResult.entrySet()) {
                     // System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
-                    Pattern r = Pattern.compile(regex.substring(beginFlag, endFlag));
+                    redosPattern r = redosPattern.compile(regex.substring(beginFlag, endFlag));
                     Trace t = new Trace(1e4);
                     CharSequence cs = entry.getKey();
-                    Matcher m = r.matcher(cs, t);
+                    redosMatcher m = r.matcher(cs, t);
                     Trace k = m.find();
                     System.out.println(k.str.length());
                     System.out.println(entry.getKey().length());
@@ -1601,7 +1599,7 @@ public class Analyzer {
                             && Arrays.asList(node.new_atoms).contains(next_node))
                         continue;
                     // 如果节点中含有字符的话，将路径加入pathSharing并跳出循环
-                    if (pattern.checkSlice(node, false)) {
+                    if (redosPattern.checkSlice(node, false)) {
                         pathSharing.add(tmpPath);
                         break;
                     }
@@ -1649,11 +1647,11 @@ public class Analyzer {
         EXIST, NOT_EXIST, NOT_SURE
     }
 
-    public Analyzer(Pattern regexPattern, int max_length) {
-        pattern = regexPattern;
+    public Analyzer(redosPattern regexRedosPattern, int max_length) {
+        redosPattern = regexRedosPattern;
         maxLength = max_length;
         initialize();
-        buildTree(pattern.root);
+        buildTree(redosPattern.root);
         removeInvalidLoop();
     }
 
@@ -1750,7 +1748,7 @@ public class Analyzer {
 
     private boolean checkResult(String prefix, String pump, String suffix, int maxLength, double threshold) {
         double matchingStepCnt = 0;
-        matchingStepCnt = pattern.getMatchingStepCnt(prefix, pump, suffix, maxLength, threshold);
+        matchingStepCnt = redosPattern.getMatchingStepCnt(prefix, pump, suffix, maxLength, threshold);
         if (matchingStepCnt >= threshold)
             return true;
         return false;
@@ -1762,7 +1760,7 @@ public class Analyzer {
         if (a == null)
             return false;
         while (a != b && a.direct_next != null && a.sub_next == null && !(a instanceof Branch)) {
-            if (pattern.isSlice(a))
+            if (redosPattern.isSlice(a))
                 return false;
             a = a.direct_next;
         }
@@ -1775,8 +1773,8 @@ public class Analyzer {
             for (int j = i + 1; j < loopNodeList.size(); j++) {
                 Node a = loopNodeList.get(i);
                 Node b = loopNodeList.get(j);
-                Node pA = pattern.getDirectParent(a);
-                Node pB = pattern.getDirectParent(b);
+                Node pA = redosPattern.getDirectParent(a);
+                Node pB = redosPattern.getDirectParent(b);
 //                if (onDirectNext(pA, pB) || pA.self == "|" && pA == pB) {
                 if (onDirectNext(pA, pB)) {
                     ArrayList<Node> nPath = new ArrayList<Node>();
@@ -1814,8 +1812,8 @@ public class Analyzer {
     private ArrayList<Set<Integer>> getDirectPathSet(Node node, Node node2) {
         ArrayList<Set<Integer>> path = new ArrayList<>();
         while (node != null && node != node2) {
-            if(node instanceof Pattern.CharProperty)
-            path.add(((Pattern.CharProperty)node).charSet);
+            if(node instanceof redosPattern.CharProperty)
+            path.add(((redosPattern.CharProperty)node).charSet);
             node = node.direct_next;
         }
         return path;
@@ -1918,10 +1916,10 @@ public class Analyzer {
         ArrayList<Node> curr_path = new ArrayList<Node>();
         curr_path.addAll(prev_path);
         curr_path.add(node);
-        if (pattern.isBacktrackLoop(node)) {
+        if (redosPattern.isBacktrackLoop(node)) {
             if (direct)
                 loopAfterLoop.add(curr_path);
-            else if (!pattern.isCertainCntLoop(node))
+            else if (!redosPattern.isCertainCntLoop(node))
                 loopInLoop.add(curr_path);
             getPathFromLoop(node.direct_next, curr_path, direct);
             getPathFromLoop(node.sub_next, curr_path, direct);
@@ -1947,7 +1945,7 @@ public class Analyzer {
     private void removeInvalidLoop() {
         for (Iterator<Node> i = loopNodes.iterator(); i.hasNext(); ) {
             Node element = i.next();
-            if (pattern.lengthExceed(element, maxLength))
+            if (redosPattern.lengthExceed(element, maxLength))
                 i.remove();
         }
     }
@@ -1960,11 +1958,11 @@ public class Analyzer {
         branchInLoop = new ArrayList<ArrayList<Node>>();
         loopAfterLoop = new ArrayList<ArrayList<Node>>();
 
-        regex = pattern.pattern();
+        regex = redosPattern.pattern();
     }
 
     private void buildTree(Node cur) {
-        if (pattern.isBacktrackLoop(cur))
+        if (redosPattern.isBacktrackLoop(cur))
             loopNodes.add(cur);
 
         // System.out.println("current node: " + cur.self);

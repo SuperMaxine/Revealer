@@ -3,7 +3,7 @@ package redos.utils;
 import java.util.List;
 import java.util.Stack;
 
-import redos.regex.Pattern.Node;
+import redos.regex.redosPattern.Node;
 
 /**
  * Some operation of trace and log are placed here

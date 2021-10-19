@@ -89,7 +89,7 @@ java -jar target/Revealer-0.0.1-jar-with-dependencies.jar attackInfo450.txt out.
 For each line in the input file, Revealer prints the regex, a JSON object containing the regex and the attack string, and the matching step to the command line interface, e.g.,
 ```
 (\w+[\.\_\-]*)*\w+@[\w]+(.)*\w+$
-{"input":"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\b","pattern":"(\\w+[\\.\\_\\-]*)*\\w+@[\\w]+(.)*\\w+$"}
+{"input":"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\b","redosPattern":"(\\w+[\\.\\_\\-]*)*\\w+@[\\w]+(.)*\\w+$"}
 100000256
 ```
 If the matching step is greater than `1e5`, the corresponding regex will appear in the output file.
