@@ -157,6 +157,10 @@ public class Analyzer {
             for(Set<Integer> tmp : infix){
                 pump.append(tmp.iterator().next());
             }
+
+
+            suffix.append(prefix);
+            suffix.append(pump);
         }
     }
 
