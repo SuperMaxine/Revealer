@@ -113,7 +113,8 @@ public class RedosTester {
 						System.out.print(regex + "\n");
 						redosPattern p = redosPattern.compile(regex);
 						Pattern4Search p4s = Pattern4Search.compile(regex);
-						Analyzer redosAnalyzer = new Analyzer(p, max_length);
+						// Analyzer redosAnalyzer = new Analyzer(p, max_length);
+						Analyzer redosAnalyzer = new Analyzer(p, p4s,  max_length);
 						redosAnalyzer.doStaticAnalysis();
 						redosAnalyzer.doDynamicAnalysis(outVul, cnt, threshold, 10000);
 

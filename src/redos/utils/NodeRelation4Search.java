@@ -1,11 +1,11 @@
 package redos.utils;
 
-import redos.regex.Pattern4Search.Node;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import redos.regex.Pattern4Search.Node;
 
 public class NodeRelation4Search {
 	private Map<Node, Set<Node>> nodeParents = new HashMap<Node, Set<Node>>();
