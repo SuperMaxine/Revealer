@@ -15,8 +15,12 @@ import redos.regex.redosPattern.Node;
 import redos.regex.redosPattern.Ques;
 import redos.utils.PatternUtils;
 
+import redos.regex.Pattern4Search;
+import redos.regex.Matcher4Search;
+
 public class Analyzer {
     redosPattern pattern;
+    Pattern4Search pattern4Search;
     int maxLength;
 
     boolean possible_vulnerability;
@@ -1762,6 +1766,15 @@ public class Analyzer {
         removeInvalidLoop();
     }
 
+    public Analyzer(redosPattern regexPattern, Pattern4Search p4s, int max_length) {
+        pattern = regexPattern;
+        pattern4Search = p4s;
+        maxLength = max_length;
+        initialize();
+        buildTree(pattern.root);
+        removeInvalidLoop();
+    }
+
     public enum VulType {
         LOOP_IN_LOOP, BRANCH_IN_LOOP, LOOP_AFTER_LOOP,
         ONE_COUNTING, POA, SLQ
@@ -1771,7 +1784,7 @@ public class Analyzer {
         SATISFIED, UNSATISFIED, ONLEAVE
     }
 
-    public void doDynamicAnalysis(BufferedWriter outVul, int index, double threshold) throws IOException {
+    public void doDynamicAnalysis(BufferedWriter outVul, int index, double threshold, int thresholdI) throws IOException {
         possibleVuls = new ArrayList<VulStructure>();
 
         // for (ArrayList<Node> path : loopInLoop) {
@@ -1868,7 +1881,15 @@ public class Analyzer {
         for(finalVul vulCase : possibleFinalVuls){
             vulCase.getInfix();
             vulCase.getpump();
-            if (vulCase.pump.length()!=0 && checkResult(vulCase.prefix.toString(), vulCase.pump.toString(), vulCase.suffix.toString(),
+            if(vulCase.type == VulType.SLQ){
+                if (vulCase.pump.length()!=0 && checkResult4Search(vulCase.prefix.toString(), vulCase.pump.toString(), vulCase.suffix.toString(),
+                        maxLength, thresholdI)) {
+                    // vulCase.printResult(outVul, index);
+                    possible_vulnerability = true;
+                    break;
+                }
+            }
+            else if (vulCase.pump.length()!=0 && checkResult(vulCase.prefix.toString(), vulCase.pump.toString(), vulCase.suffix.toString(),
                     maxLength, threshold)) {
                 // vulCase.printResult(outVul, index);
                 possible_vulnerability = true;
@@ -1883,6 +1904,14 @@ public class Analyzer {
     private boolean checkResult(String prefix, String pump, String suffix, int maxLength, double threshold) {
         double matchingStepCnt = 0;
         matchingStepCnt = pattern.getMatchingStepCnt(prefix, pump, suffix, maxLength, threshold);
+        if (matchingStepCnt >= threshold)
+            return true;
+        return false;
+    }
+
+    private boolean checkResult4Search(String prefix, String pump, String suffix, int maxLength, int threshold) {
+        double matchingStepCnt = 0;
+        matchingStepCnt = pattern4Search.getMatchingStepCnt(prefix, pump, suffix, maxLength, threshold);
         if (matchingStepCnt >= threshold)
             return true;
         return false;

@@ -14,6 +14,8 @@ import com.alibaba.fastjson.JSONObject;
 import redos.regex.Analyzer;
 import redos.regex.reodsMatcher;
 import redos.regex.redosPattern;
+import redos.regex.Pattern4Search;
+import redos.regex.Matcher4Search;
 
 public class RedosTester {
 	public static void vulValidation(String inputPath, String outputPath) throws IOException {
@@ -85,7 +87,7 @@ public class RedosTester {
 		redosPattern p = redosPattern.compile(regex);
 		Analyzer redosAnalyzer = new Analyzer(p, max_length);
 		redosAnalyzer.doStaticAnalysis();
-		redosAnalyzer.doDynamicAnalysis(log, -1, threshold);
+		redosAnalyzer.doDynamicAnalysis(log, -1, threshold, 10000);
 		if (!redosAnalyzer.isVulnerable())
 			System.out.print("Contains no vulnerablity\n");
 		log.flush();
@@ -110,9 +112,10 @@ public class RedosTester {
 					try {
 						System.out.print(regex + "\n");
 						redosPattern p = redosPattern.compile(regex);
+						Pattern4Search p4s = Pattern4Search.compile(regex);
 						Analyzer redosAnalyzer = new Analyzer(p, max_length);
 						redosAnalyzer.doStaticAnalysis();
-						redosAnalyzer.doDynamicAnalysis(outVul, cnt, threshold);
+						redosAnalyzer.doDynamicAnalysis(outVul, cnt, threshold, 10000);
 
 						if (redosAnalyzer.isVulnerable())
 							System.out.print(regex+"Contains vulnerablity\n");
