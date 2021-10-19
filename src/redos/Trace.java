@@ -12,7 +12,7 @@ import redos.regex.Pattern.Node;
  */
 //public class Trace implements Comparable<Trace>{
 public class Trace{
-	public double threshold = 1e5; // First judge: it's vulnerable when the number of match steps larger than CATASTROPHIC_THRESHOLD
+	public int threshold = 100000; // First judge: it's vulnerable when the number of match steps larger than CATASTROPHIC_THRESHOLD	// 修改
 	
 	public boolean matchSuccess; // String accepted or not
 	public String str; // The Input string
@@ -35,7 +35,7 @@ public class Trace{
 
 	private List<Integer> logIdx;
 	
-	public Trace(double threshold) {
+	public Trace(int threshold) {	// 修改
 		this.matchSuccess = false;
 		this.str = null;
 		this.effectiveStr = null;
@@ -47,7 +47,7 @@ public class Trace{
 		this.threshold = threshold;
 	}
 	
-	public Trace(double threshold, boolean isDetail) {
+	public Trace(int threshold, boolean isDetail) {	// 修改
 		this(threshold);
 		this.logNode = new LinkedList<Node>();
 		this.logIdx = new LinkedList<Integer>();

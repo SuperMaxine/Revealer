@@ -413,7 +413,7 @@ public final class Pattern implements java.io.Serializable {
      * @throws PatternSyntaxException            If the expression's syntax is
      *                                           invalid
      */
-    public static boolean matches(String regex, CharSequence input, Trace trace) {
+    public static Trace matches(String regex, CharSequence input, Trace trace) {    // 修改
         Pattern p = Pattern.compile(regex);
         Matcher m = p.matcher(input, trace);
         return m.matches();
@@ -2783,8 +2783,9 @@ public final class Pattern implements java.io.Serializable {
          * to see if the match occurred using all of the input.
          */
         boolean match(Matcher matcher, int i, CharSequence seq) {
-            if (matcher.acceptMode == Matcher.ENDANCHOR && i != matcher.to)
+            if (matcher.acceptMode == Matcher.ENDANCHOR && i != matcher.to) {
                 return false;
+            }
             matcher.last = i;
             matcher.groups[0] = matcher.first;
             matcher.groups[1] = matcher.last;
@@ -3485,9 +3486,9 @@ public final class Pattern implements java.io.Serializable {
         }
 
         /**
-         * 鏉╂瑤閲滈崙鑺ユ殶閻€劋绨亸鍞卬t閸栨牜娈憉nicode鐎涙顑佹潪顒�娲杝tring
+         * 鏉╂瑤閲滈崙鑺ユ殶閻€劋绨亸鍞卬t閸栨牜娈憉nicode鐎涙顑佹潪顒?娲杝tring
          * 
-         * @return slice閻ㄥ垺uffer鏉烆剛娈憉nicode鐎涙顑佹稉锟�
+         * @return slice閻ㄥ垺uffer鏉烆剛娈憉nicode鐎涙顑佹稉锟?
          */
         public String getSliceBuffer() {
             String result = "";
@@ -5210,9 +5211,9 @@ public final class Pattern implements java.io.Serializable {
         }
 
         /**
-         * 鏉╂瑤閲滈崙鑺ユ殶閻€劋绨亸鍞卬t閸栨牜娈憉nicode鐎涙顑佹潪顒�娲杝tring
+         * 鏉╂瑤閲滈崙鑺ユ殶閻€劋绨亸鍞卬t閸栨牜娈憉nicode鐎涙顑佹潪顒?娲杝tring
          * 
-         * @return slice閻ㄥ垺uffer鏉烆剛娈憉nicode鐎涙顑佹稉锟�
+         * @return slice閻ㄥ垺uffer鏉烆剛娈憉nicode鐎涙顑佹稉锟?
          */
         public String getSliceBuffer() {
             String result = "";
@@ -5950,14 +5951,16 @@ public final class Pattern implements java.io.Serializable {
             return "";
     }
 
-    public double getMatchingStepCnt(String prefix, String pump, String suffix, int max_length, double threshold) {
+    public int getMatchingStepCnt(String prefix, String pump, String suffix, int max_length, int threshold) {   // 修改
         int repeat_cnt = (max_length - prefix.length() - suffix.length()) / pump.length();
         if (repeat_cnt < 1)
             return 0;
         String repeated = new String(new char[repeat_cnt]).replace("\0", pump);
         String attack_string = prefix + repeated + suffix;
         Matcher m = matcher(attack_string, new Trace(threshold, false));
-        Trace t = m.find();
+        Trace t = m.matches();
+                //m.find();
+//        System.out.println("t.getMatchSteps() = " + t.getMatchSteps());
         return t.getMatchSteps();
     }
 

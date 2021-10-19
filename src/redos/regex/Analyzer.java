@@ -1190,7 +1190,7 @@ public class Analyzer {
         SATISFIED, UNSATISFIED, ONLEAVE
     }
 
-    public void doDynamicAnalysis(BufferedWriter outVul, int index, double threshold) throws IOException {
+    public void doDynamicAnalysis(BufferedWriter outVul, int index, int threshold) throws IOException {
         possibleVuls = new ArrayList<VulStructure>();
 
         for (ArrayList<Node> path : loopInLoop) {
@@ -1263,8 +1263,8 @@ public class Analyzer {
         }
     }
 
-    private boolean checkResult(String prefix, String pump, String suffix, int maxLength, double threshold) {
-        double matchingStepCnt = 0;
+    public boolean checkResult(String prefix, String pump, String suffix, int maxLength, int threshold) {
+        int matchingStepCnt = 0;
         matchingStepCnt = pattern.getMatchingStepCnt(prefix, pump, suffix, maxLength, threshold);
         if (matchingStepCnt >= threshold)
             return true;
@@ -1292,8 +1292,7 @@ public class Analyzer {
                 Node b = loopNodeList.get(j);
                 Node pA = pattern.getDirectParent(a);
                 Node pB = pattern.getDirectParent(b);
-//                if (onDirectNext(pA, pB) || pA.self == "|" && pA == pB) {
-                if (onDirectNext(pA, pB)) {
+                if (onDirectNext(pA, pB) || pA.self == "|" && pA == pB) {
                     ArrayList<Node> nPath = new ArrayList<Node>();
                     nPath.add(a);
                     nPath.add(b);
