@@ -16,13 +16,13 @@ import com.alibaba.fastjson.JSONObject;
 import org.javatuples.Quartet;
 import org.javatuples.Triplet;
 
-import redos.regex.Pattern.Branch;
-import redos.regex.Pattern.Node;
-import redos.regex.Pattern.Ques;
+import redos.regex.Pattern4Search.Branch;
+import redos.regex.Pattern4Search.Node;
+import redos.regex.Pattern4Search.Ques;
 import redos.utils.PatternUtils;
 
 public class Analyzer {
-    Pattern pattern;
+    Pattern4Search pattern4Search;
     int maxLength;
 
     boolean possible_vulnerability;
@@ -66,8 +66,8 @@ public class Analyzer {
                     min = 0;
                     max = 0;
                 } else {
-                    min = pattern.getMinCount(node);
-                    max = pattern.getMaxCount(node);
+                    min = pattern4Search.getMinCount(node);
+                    max = pattern4Search.getMaxCount(node);
                     if (max > 10)
                         max = 10;
                 }
@@ -77,7 +77,7 @@ public class Analyzer {
                 if (nextSliceSetMendatory == null)
                     nextSliceSetMendatory = new HashMap<Node, MatchGenerator>();
                 nextSliceSetMendatory.put(node, generator);
-                if (!pattern.isSlice(curNode)) {
+                if (!pattern4Search.isSlice(curNode)) {
                     if (nextSliceSetSatisfied == null)
                         nextSliceSetSatisfied = new HashMap<Node, MatchGenerator>();
                     nextSliceSetSatisfied.put(node, generator);
@@ -88,7 +88,7 @@ public class Analyzer {
                 if (nextSliceSetUnsatisfied == null)
                     nextSliceSetUnsatisfied = new HashMap<Node, MatchGenerator>();
                 nextSliceSetUnsatisfied.put(node, generator);
-                if (!pattern.isSlice(curNode)) {
+                if (!pattern4Search.isSlice(curNode)) {
                     if (nextSliceSetSatisfied == null)
                         nextSliceSetSatisfied = new HashMap<Node, MatchGenerator>();
                     nextSliceSetSatisfied.put(node, generator);
@@ -224,8 +224,8 @@ public class Analyzer {
                     curCntSet.put(nextGenerator, lastCnt + 1);
                 } else
                     curCntSet.put(nextGenerator, lastCnt);
-                if (pattern.isSlice(sliceNode)) // upadate matching path
-                    matchingPath.append(pattern.getSlice(sliceNode));
+                if (pattern4Search.isSlice(sliceNode)) // upadate matching path
+                    matchingPath.append(pattern4Search.getSlice(sliceNode));
 
                 cnt = curCntSet.get(nextGenerator); // update cur cnt
                 curGenerator = nextGenerator; // update curGenerator = nextGeneratorSource
@@ -240,7 +240,7 @@ public class Analyzer {
             }
 
             public String pushForward(Node sliceNode, MatchGenerator nextGeneratorSource, int ch) {
-                String str = pattern.checkChar(sliceNode, ch);
+                String str = pattern4Search.checkChar(sliceNode, ch);
                 if (str == null)
                     return null;
                 boolean isEnd = curGenerator.isEnd; // get isEnd flag
@@ -253,7 +253,7 @@ public class Analyzer {
                     curCntSet.put(nextGenerator, lastCnt + 1);
                 else
                     curCntSet.put(nextGenerator, lastCnt);
-                if (pattern.isSlice(sliceNode)) // upadate matching path
+                if (pattern4Search.isSlice(sliceNode)) // upadate matching path
                     matchingPath.append(PatternUtils.convertString(ch) + str);
                 cnt = curCntSet.get(nextGenerator); // update cur cnt
                 curGenerator = nextGenerator; // update curGenerator = nextGeneratorSource
@@ -330,7 +330,7 @@ public class Analyzer {
                 nextCharSetFull = new HashSet<Integer>();
                 nextCharSetMap = new HashMap<Triplet<Driver, Node, MatchGenerator>, Set<Integer>>();
                 for (Triplet<Driver, Node, MatchGenerator> triplet : nextSlices) {
-                    Set<Integer> charSet = pattern.getMatchSet(triplet.getValue1());
+                    Set<Integer> charSet = pattern4Search.getMatchSet(triplet.getValue1());
                     if (charSet != null) {
                         nextCharSetMap.put(triplet, charSet);
                         nextCharSetFull.addAll(charSet);
@@ -357,7 +357,7 @@ public class Analyzer {
                             nextSliceNode = new HashSet<Node>();
                         nextSliceNode.add(triplet.getValue1());
                     }
-                    String failedCore = pattern.getUnMatch(nextSliceNode);
+                    String failedCore = pattern4Search.getUnMatch(nextSliceNode);
                     if (failedCore != null) {
                         failedMatch = driver.matchingPath.toString() + failedCore;
                         break;
@@ -453,7 +453,7 @@ public class Analyzer {
                 MatchGenerator tmpGenerator = headGenerator;
                 index = 0;
                 while (directedPath.get(index).sub_next == null && directedPath.get(index).new_atoms == null
-                        && !pattern.isSlice(directedPath.get(index)) && index < directedPath.size() - 1)
+                        && !pattern4Search.isSlice(directedPath.get(index)) && index < directedPath.size() - 1)
                     index += 1;
                 do {
                     lastGenerator = tmpGenerator;
@@ -570,7 +570,7 @@ public class Analyzer {
                 Node lastNode = lastGeneratorTmp.curNode;
                 MatchGenerator nextGenerator = lastGeneratorTmp;
 
-                if (node.sub_next != null || (node.new_atoms != null && next_node != null) || pattern.isSlice(node)) { // cur
+                if (node.sub_next != null || (node.new_atoms != null && next_node != null) || pattern4Search.isSlice(node)) { // cur
                                                                                                                        // is
                                                                                                                        // meaningful
                     if (allGenerators == null)
@@ -591,7 +591,7 @@ public class Analyzer {
                             p = p.direct_prev;
                         }
                         if (p == null || p == lastNode.direct_next) {
-                            if (pattern.isSlice(node)) { // last generator is slice type
+                            if (pattern4Search.isSlice(node)) { // last generator is slice type
                                 lastGeneratorTmp.addMendatoryCase(node, newGenerator);
                             }
 
@@ -601,7 +601,7 @@ public class Analyzer {
 
                         } else if (p == lastNode.sub_next
                                 || lastNode.new_atoms != null && Arrays.asList(lastNode.new_atoms).contains(p)) {
-                            if (pattern.isSlice(node)) { // last generator is slice type
+                            if (pattern4Search.isSlice(node)) { // last generator is slice type
                                 lastGeneratorTmp.addUnsatisfiedCase(node, newGenerator);
                             }
 
@@ -615,7 +615,7 @@ public class Analyzer {
                     }
 
                     else { // the begin Generator
-                        if (pattern.isSlice(node)) { // last generator is slice type
+                        if (pattern4Search.isSlice(node)) { // last generator is slice type
                             lastGeneratorTmp.addMendatoryCase(node, newGenerator);
                         }
 
@@ -627,7 +627,7 @@ public class Analyzer {
                     if (sub) {
                         Node p = node.direct_next;
                         while (p != null) {
-                            if (p.sub_next != null || p.new_atoms != null || pattern.isSlice(p))
+                            if (p.sub_next != null || p.new_atoms != null || pattern4Search.isSlice(p))
                                 break;
                             p = p.direct_next;
                         }
@@ -1129,7 +1129,7 @@ public class Analyzer {
                     if (next_node != null && node.new_atoms != null
                             && Arrays.asList(node.new_atoms).contains(next_node))
                         continue;
-                    if (pattern.checkSlice(node, false)) {
+                    if (pattern4Search.checkSlice(node, false)) {
                         pathSharing.add(tmpPath);
                         break;
                     }
@@ -1174,11 +1174,11 @@ public class Analyzer {
         EXIST, NOT_EXIST, NOT_SURE
     }
 
-    public Analyzer(Pattern regexPattern, int max_length) {
-        pattern = regexPattern;
+    public Analyzer(Pattern4Search regexPattern4Search, int max_length) {
+        pattern4Search = regexPattern4Search;
         maxLength = max_length;
         initialize();
-        buildTree(pattern.root);
+        buildTree(pattern4Search.root);
         removeInvalidLoop();
     }
 
@@ -1237,7 +1237,7 @@ public class Analyzer {
                 if (previousPath.length() > 1)
                     previousPath = previousPath.substring(0, 1);
                 else if (previousPath.length() == 0 && vulCase.suffixDriver.curGenerator.curNode.direct_next != null) {
-                    Set<Integer> nextMatchSet = pattern
+                    Set<Integer> nextMatchSet = pattern4Search
                             .getFirstMatchSet(vulCase.suffixDriver.curGenerator.curNode.direct_next);
                     if (nextMatchSet != null && nextMatchSet.size() > 0)
                         previousPath = PatternUtils.convertString(nextMatchSet.iterator().next());
@@ -1265,7 +1265,7 @@ public class Analyzer {
 
     public boolean checkResult(String prefix, String pump, String suffix, int maxLength, int threshold) {
         int matchingStepCnt = 0;
-        matchingStepCnt = pattern.getMatchingStepCnt(prefix, pump, suffix, maxLength, threshold);
+        matchingStepCnt = pattern4Search.getMatchingStepCnt(prefix, pump, suffix, maxLength, threshold);
         if (matchingStepCnt >= threshold)
             return true;
         return false;
@@ -1277,7 +1277,7 @@ public class Analyzer {
         if (a == null)
             return false;
         while (a != b && a.direct_next != null && a.sub_next == null && !(a instanceof Branch)) {
-            if (pattern.isSlice(a))
+            if (pattern4Search.isSlice(a))
                 return false;
             a = a.direct_next;
         }
@@ -1290,8 +1290,8 @@ public class Analyzer {
             for (int j = i + 1; j < loopNodeList.size(); j++) {
                 Node a = loopNodeList.get(i);
                 Node b = loopNodeList.get(j);
-                Node pA = pattern.getDirectParent(a);
-                Node pB = pattern.getDirectParent(b);
+                Node pA = pattern4Search.getDirectParent(a);
+                Node pB = pattern4Search.getDirectParent(b);
                 if (onDirectNext(pA, pB) || pA.self == "|" && pA == pB) {
                     ArrayList<Node> nPath = new ArrayList<Node>();
                     nPath.add(a);
@@ -1421,10 +1421,10 @@ public class Analyzer {
         ArrayList<Node> curr_path = new ArrayList<Node>();
         curr_path.addAll(prev_path);
         curr_path.add(node);
-        if (pattern.isBacktrackLoop(node)) {
+        if (pattern4Search.isBacktrackLoop(node)) {
             if (direct)
                 loopAfterLoop.add(curr_path);
-            else if (!pattern.isCertainCntLoop(node))
+            else if (!pattern4Search.isCertainCntLoop(node))
                 loopInLoop.add(curr_path);
             getPathFromLoop(node.direct_next, curr_path, direct);
             getPathFromLoop(node.sub_next, curr_path, direct);
@@ -1447,7 +1447,7 @@ public class Analyzer {
     private void removeInvalidLoop() {
         for (Iterator<Node> i = loopNodes.iterator(); i.hasNext();) {
             Node element = i.next();
-            if (pattern.lengthExceed(element, maxLength))
+            if (pattern4Search.lengthExceed(element, maxLength))
                 i.remove();
         }
     }
@@ -1460,11 +1460,11 @@ public class Analyzer {
         branchInLoop = new ArrayList<ArrayList<Node>>();
         loopAfterLoop = new ArrayList<ArrayList<Node>>();
 
-        regex = pattern.pattern();
+        regex = pattern4Search.pattern();
     }
 
     private void buildTree(Node cur) {
-        if (pattern.isBacktrackLoop(cur))
+        if (pattern4Search.isBacktrackLoop(cur))
             loopNodes.add(cur);
 
         // System.out.println("current node: " + cur.self);

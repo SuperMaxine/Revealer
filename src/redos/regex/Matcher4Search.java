@@ -11,12 +11,12 @@ import java.util.regex.MatchResult;
 import redos.Trace;
 
 // We modify some function for instrumentation
-public final class Matcher implements MatchResult {
+public final class Matcher4Search implements MatchResult {
 
     /**
      * The Pattern object that created this Matcher.
      */
-    Pattern parentPattern;
+    Pattern4Search parentPattern4Search;
 
     /**
      * The storage used by groups. They may contain invalid values if
@@ -122,14 +122,14 @@ public final class Matcher implements MatchResult {
     /**
      * No default constructor.
      */
-    Matcher() {
+    Matcher4Search() {
     }
 
     /**
      * All matchers have the state used by Pattern during a match.
      */
-    Matcher(Pattern parent, CharSequence text, Trace trace) {
-        this.parentPattern = parent;
+    Matcher4Search(Pattern4Search parent, CharSequence text, Trace trace) {
+        this.parentPattern4Search = parent;
         this.text = text;
 
         // Allocate state storage
@@ -152,8 +152,8 @@ public final class Matcher implements MatchResult {
      *
      * @return  The pattern for which this matcher was created
      */
-    public Pattern pattern() {
-        return parentPattern;
+    public Pattern4Search pattern() {
+        return parentPattern4Search;
     }
 
     /**
@@ -165,7 +165,7 @@ public final class Matcher implements MatchResult {
      * @since 1.5
      */
     public MatchResult toMatchResult() {
-        Matcher result = new Matcher(this.parentPattern, text.toString(), this.trace);
+        Matcher4Search result = new Matcher4Search(this.parentPattern4Search, text.toString(), this.trace);
         result.first = this.first;
         result.last = this.last;
         result.groups = this.groups.clone();
@@ -181,22 +181,22 @@ public final class Matcher implements MatchResult {
       * matcher's position in the input is maintained and its
       * last append position is unaffected.</p>
       *
-      * @param  newPattern
+      * @param  newPattern4Search
       *         The new pattern used by this matcher
       * @return  This matcher
       * @throws  IllegalArgumentException
       *          If newPattern is <tt>null</tt>
       * @since 1.5
       */
-    public Matcher usePattern(Pattern newPattern) {
-        if (newPattern == null)
+    public Matcher4Search usePattern(Pattern4Search newPattern4Search) {
+        if (newPattern4Search == null)
             throw new IllegalArgumentException("Pattern cannot be null");
-        parentPattern = newPattern;
+        parentPattern4Search = newPattern4Search;
 
         // Reallocate state storage
-        int parentGroupCount = Math.max(newPattern.capturingGroupCount, 10);
+        int parentGroupCount = Math.max(newPattern4Search.capturingGroupCount, 10);
         groups = new int[parentGroupCount * 2];
-        locals = new int[newPattern.localCount];
+        locals = new int[newPattern4Search.localCount];
         for (int i = 0; i < groups.length; i++)
             groups[i] = -1;
         for (int i = 0; i < locals.length; i++)
@@ -214,7 +214,7 @@ public final class Matcher implements MatchResult {
      *
      * @return  This matcher
      */
-    public Matcher reset() {
+    public Matcher4Search reset() {
         first = -1;
         last = 0;
         oldLast = -1;
@@ -242,7 +242,7 @@ public final class Matcher implements MatchResult {
      *
      * @return  This matcher
      */
-    public Matcher reset(CharSequence input) {
+    public Matcher4Search reset(CharSequence input) {
         text = input;
         return reset();
     }
@@ -506,7 +506,7 @@ public final class Matcher implements MatchResult {
      * @return The number of capturing groups in this matcher's pattern
      */
     public int groupCount() {
-        return parentPattern.capturingGroupCount - 1;
+        return parentPattern4Search.capturingGroupCount - 1;
     }
 
     /**
@@ -555,9 +555,9 @@ public final class Matcher implements MatchResult {
                 groups[i] = -1;
             trace_result = false;
         } else {
-        	Pattern.trace = this.trace;
+        	Pattern4Search.trace = this.trace;
         	trace_result = search(nextSearchIndex);
-        	this.trace = Pattern.trace;
+        	this.trace = Pattern4Search.trace;
         }
         
         trace.setEffectiveStr(text.toString());
@@ -619,7 +619,7 @@ public final class Matcher implements MatchResult {
      *
      * This method produces a <code>String</code> that will work
      * as a literal replacement <code>s</code> in the
-     * <code>appendReplacement</code> method of the {@link Matcher} class.
+     * <code>appendReplacement</code> method of the {@link Matcher4Search} class.
      * The <code>String</code> produced will match the sequence of characters
      * in <code>s</code> treated as a literal sequence. Slashes ('\') and
      * dollar signs ('$') will be given no special meaning.
@@ -722,7 +722,7 @@ public final class Matcher implements MatchResult {
      *          If the replacement string refers to a capturing group
      *          that does not exist in the pattern
      */
-    public Matcher appendReplacement(StringBuffer sb, String replacement) {
+    public Matcher4Search appendReplacement(StringBuffer sb, String replacement) {
 
         // If no match, return error
         if (first < 0)
@@ -776,10 +776,10 @@ public final class Matcher implements MatchResult {
                         throw new IllegalArgumentException(
                             "capturing group name {" + gname +
                             "} starts with digit character");
-                    if (!parentPattern.namedGroups().containsKey(gname))
+                    if (!parentPattern4Search.namedGroups().containsKey(gname))
                         throw new IllegalArgumentException(
                             "No group with name {" + gname + "}");
-                    refNum = parentPattern.namedGroups().get(gname);
+                    refNum = parentPattern4Search.namedGroups().get(gname);
                     cursor++;
                 } else {
                     // The first number is always a group
@@ -964,7 +964,7 @@ public final class Matcher implements MatchResult {
      * @return  this matcher
      * @since 1.5
      */
-    public Matcher region(int start, int end) {
+    public Matcher4Search region(int start, int end) {
         if ((start < 0) || (start > getTextLength()))
             throw new IndexOutOfBoundsException("start");
         if ((end < 0) || (end > getTextLength()))
@@ -1050,7 +1050,7 @@ public final class Matcher implements MatchResult {
      * @see java.util.regex.Matcher#hasTransparentBounds
      * @since 1.5
      */
-    public Matcher useTransparentBounds(boolean b) {
+    public Matcher4Search useTransparentBounds(boolean b) {
         transparentBounds = b;
         return this;
     }
@@ -1096,7 +1096,7 @@ public final class Matcher implements MatchResult {
      * @see java.util.regex.Matcher#hasAnchoringBounds
      * @since 1.5
      */
-    public Matcher useAnchoringBounds(boolean b) {
+    public Matcher4Search useAnchoringBounds(boolean b) {
         anchoringBounds = b;
         return this;
     }
@@ -1178,7 +1178,7 @@ public final class Matcher implements MatchResult {
         for (int i = 0; i < groups.length; i++)
             groups[i] = -1;
         acceptMode = NOANCHOR;
-        boolean result = parentPattern.root.match(this, from, text, true);
+        boolean result = parentPattern4Search.root.match(this, from, text, true);
         if (!result)
             this.first = -1;
         this.oldLast = this.last;
@@ -1200,12 +1200,12 @@ public final class Matcher implements MatchResult {
         for (int i = 0; i < groups.length; i++)
             groups[i] = -1;
         acceptMode = anchor;
-        Pattern.trace = this.trace;
-        boolean result = parentPattern.matchRoot.match(this, from, text, true);
+        Pattern4Search.trace = this.trace;
+        boolean result = parentPattern4Search.matchRoot.match(this, from, text, true);
         if (!result)
             this.first = -1;
         this.oldLast = this.last;
-        this.trace = Pattern.trace;
+        this.trace = Pattern4Search.trace;
 
         trace.setEffectiveStr(text.toString());
         trace.matchSuccess = result;
@@ -1251,8 +1251,8 @@ public final class Matcher implements MatchResult {
         Objects.requireNonNull(name, "Group name");
         if (first < 0)
             throw new IllegalStateException("No match found");
-        if (!parentPattern.namedGroups().containsKey(name))
+        if (!parentPattern4Search.namedGroups().containsKey(name))
             throw new IllegalArgumentException("No group with name <" + name + ">");
-        return parentPattern.namedGroups().get(name);
+        return parentPattern4Search.namedGroups().get(name);
     }
 }

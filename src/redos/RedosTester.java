@@ -8,13 +8,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.Scanner;
-
-import com.alibaba.fastjson.JSONObject;
 
 import redos.regex.Analyzer;
-import redos.regex.Matcher;
-import redos.regex.Pattern;
+import redos.regex.Pattern4Search;
 
 public class RedosTester {
 	public static void vulValidation(String inputPath, String outputPath) throws IOException {
@@ -62,7 +58,7 @@ public class RedosTester {
 //				jsonObject.put("input", attack_string);
 //				System.out.print(jsonObject + "\n");
 
-				Pattern p = Pattern.compile(regex);
+				Pattern4Search p = Pattern4Search.compile(regex);
 				Analyzer redosAnalyzer = new Analyzer(p, max_length);
 				System.out.println(redosAnalyzer.checkResult(prefix, attack_core, suffix, max_length, threshold));
 
@@ -96,7 +92,7 @@ public class RedosTester {
 		int max_length = 128;
 		int threshold = 10000;
 		BufferedWriter log = new BufferedWriter(new OutputStreamWriter(System.out));
-		Pattern p = Pattern.compile(regex);
+		Pattern4Search p = Pattern4Search.compile(regex);
 		Analyzer redosAnalyzer = new Analyzer(p, max_length);
 		redosAnalyzer.doStaticAnalysis();
 		redosAnalyzer.doDynamicAnalysis(log, -1, threshold);
@@ -123,7 +119,7 @@ public class RedosTester {
 				while ((regex = bufferedReader.readLine()) != null) {
 					try {
 						System.out.print(regex + "\n");
-						Pattern p = Pattern.compile(regex);
+						Pattern4Search p = Pattern4Search.compile(regex);
 						Analyzer redosAnalyzer = new Analyzer(p, max_length);
 						redosAnalyzer.doStaticAnalysis();
 						redosAnalyzer.doDynamicAnalysis(outVul, cnt, threshold);
