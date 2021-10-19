@@ -19,7 +19,7 @@ import org.javatuples.Triplet;
 import redos.regex.Pattern4Search.Branch;
 import redos.regex.Pattern4Search.Node;
 import redos.regex.Pattern4Search.Ques;
-import redos.utils.PatternUtils;
+import redos.utils.PatternUtils4Search;
 
 public class Analyzer {
     Pattern4Search pattern4Search;
@@ -254,7 +254,7 @@ public class Analyzer {
                 else
                     curCntSet.put(nextGenerator, lastCnt);
                 if (pattern4Search.isSlice(sliceNode)) // upadate matching path
-                    matchingPath.append(PatternUtils.convertString(ch) + str);
+                    matchingPath.append(PatternUtils4Search.convertString(ch) + str);
                 cnt = curCntSet.get(nextGenerator); // update cur cnt
                 curGenerator = nextGenerator; // update curGenerator = nextGeneratorSource
                 // clear curCntSet if next generator reach a repetiton
@@ -1240,7 +1240,7 @@ public class Analyzer {
                     Set<Integer> nextMatchSet = pattern4Search
                             .getFirstMatchSet(vulCase.suffixDriver.curGenerator.curNode.direct_next);
                     if (nextMatchSet != null && nextMatchSet.size() > 0)
-                        previousPath = PatternUtils.convertString(nextMatchSet.iterator().next());
+                        previousPath = PatternUtils4Search.convertString(nextMatchSet.iterator().next());
                 }
                 vulCase.suffixDriver.matchingPath.setLength(0);
                 String lastFailedStr = vulCase.suffixDriver.getShortestFailedMatch();

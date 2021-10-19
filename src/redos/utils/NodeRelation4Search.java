@@ -7,7 +7,7 @@ import java.util.Set;
 
 import redos.regex.Pattern4Search.Node;
 
-public class NodeRelation {
+public class NodeRelation4Search {
 	private Map<Node, Set<Node>> nodeParents = new HashMap<Node, Set<Node>>();
 	public void addParent(Node child, Node parent) {
 		if (parent == null) return; // No parent for root node

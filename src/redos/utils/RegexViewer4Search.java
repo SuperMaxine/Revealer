@@ -62,7 +62,7 @@ class AutoMatchPlayer extends Thread{
 /**
  * The regex structure viewer, its GUI is based on prefuse.jar
  */
-public class RegexViewer {
+public class RegexViewer4Search {
 	static Graph g;
 	static Visualization vis;
 	static int curStep = 0;

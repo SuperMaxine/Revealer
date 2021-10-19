@@ -27,9 +27,9 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import redos.Trace4Search;
-import redos.utils.PatternUtils;
-import redos.utils.NodeRelation;
-import redos.utils.RegexViewer;
+import redos.utils.PatternUtils4Search;
+import redos.utils.NodeRelation4Search;
+import redos.utils.RegexViewer4Search;
 import prefuse.data.Schema;
 import prefuse.data.Table;
 
@@ -3247,7 +3247,7 @@ public final class Pattern4Search implements java.io.Serializable {
         final int c;
 
         SingleS(int c) {
-            super(PatternUtils.convertString(c));
+            super(PatternUtils4Search.convertString(c));
             this.c = c;
             this.charSet.add(c);
         }
@@ -3271,7 +3271,7 @@ public final class Pattern4Search implements java.io.Serializable {
         final int c;
 
         Single(int c) {
-            super(PatternUtils.convertString(c));
+            super(PatternUtils4Search.convertString(c));
             this.c = c;
             this.charSet.add(c);
         }
@@ -3296,7 +3296,7 @@ public final class Pattern4Search implements java.io.Serializable {
         final int upper;
 
         SingleI(int lower, int upper) {
-            super(PatternUtils.convertString(upper));
+            super(PatternUtils4Search.convertString(upper));
             this.lower = lower;
             this.upper = upper;
             this.addSingleChar(lower);
@@ -3322,7 +3322,7 @@ public final class Pattern4Search implements java.io.Serializable {
         final int lower;
 
         SingleU(int lower) {
-            super(PatternUtils.convertString(lower));
+            super(PatternUtils4Search.convertString(lower));
             this.lower = lower;
             this.charSet.add(lower);
             this.addSingleChar(Character.toUpperCase(lower));
@@ -3475,7 +3475,7 @@ public final class Pattern4Search implements java.io.Serializable {
         int[] buffer;
 
         SliceNode(int[] buf) {
-            super(PatternUtils.convertString(buf));
+            super(PatternUtils4Search.convertString(buf));
             buffer = buf;
         }
 
@@ -3659,7 +3659,7 @@ public final class Pattern4Search implements java.io.Serializable {
      */
     private static CharProperty rangeFor(final int lower, final int upper) {
         CharProperty newCharProperty = new CharProperty(
-                PatternUtils.convertString(lower) + "-" + PatternUtils.convertString(upper)) {
+                PatternUtils4Search.convertString(lower) + "-" + PatternUtils4Search.convertString(upper)) {
 
             boolean isSatisfiedBy(int ch) {
                 return inRange(lower, ch, upper);
@@ -3678,7 +3678,7 @@ public final class Pattern4Search implements java.io.Serializable {
         CharProperty newCharProperty = null;
         if (has(UNICODE_CASE)) {
             newCharProperty = new CharProperty(
-                    PatternUtils.convertString(lower) + "-" + PatternUtils.convertString(upper)) {
+                    PatternUtils4Search.convertString(lower) + "-" + PatternUtils4Search.convertString(upper)) {
                 boolean isSatisfiedBy(int ch) {
                     if (inRange(lower, ch, upper))
                         return true;
@@ -3692,7 +3692,7 @@ public final class Pattern4Search implements java.io.Serializable {
             }
         } else {
             newCharProperty = new CharProperty(
-                    PatternUtils.convertString(lower) + "-" + PatternUtils.convertString(upper)) {
+                    PatternUtils4Search.convertString(lower) + "-" + PatternUtils4Search.convertString(upper)) {
                 boolean isSatisfiedBy(int ch) {
                     return inRange(lower, ch, upper) || ASCII.isAscii(ch)
                             && (inRange(lower, ASCII.toUpper(ch), upper) || inRange(lower, ASCII.toLower(ch), upper));
@@ -5162,7 +5162,7 @@ public final class Pattern4Search implements java.io.Serializable {
         }
 
         BnM(int[] src, int[] lastOcc, int[] optoSft, Node next) {
-            super(PatternUtils.convertString(src));
+            super(PatternUtils4Search.convertString(src));
             this.buffer = src;
             this.lastOcc = lastOcc;
             this.optoSft = optoSft;
@@ -5772,8 +5772,8 @@ public final class Pattern4Search implements java.io.Serializable {
      * <child, list<node> parents>
      */
     @Deprecated
-    public NodeRelation getNodeRelation() {
-        NodeRelation result = new NodeRelation();
+    public NodeRelation4Search getNodeRelation() {
+        NodeRelation4Search result = new NodeRelation4Search();
         Set<Node> visitedNodes = new HashSet<Node>();
         nodeChild(visitedNodes, result, null, root);
         return result;
@@ -5788,7 +5788,7 @@ public final class Pattern4Search implements java.io.Serializable {
      * @param cur
      */
     @Deprecated
-    private void nodeChild(Set<Node> visitedNodes, NodeRelation relation, Node prev, Node cur) {
+    private void nodeChild(Set<Node> visitedNodes, NodeRelation4Search relation, Node prev, Node cur) {
         if (cur == null) { // 娑撳秴绨茬拠銉ュ毉閻滄壆娈戦幆鍛枌
             System.out.println("Error: node is null");
         } else {
@@ -5902,16 +5902,16 @@ public final class Pattern4Search implements java.io.Serializable {
         nodeIndex = 0;
         // paintTransformed(null, root, "", nodes, edges, visitedNodes, visitedEdges);
         paintNode(null, root, "", nodes, edges, visitedNodes, visitedEdges);
-        RegexViewer.paintRegex(this, nodes, edges, true, "from", "to", "Node");
+        RegexViewer4Search.paintRegex(this, nodes, edges, true, "from", "to", "Node");
         painted = true;
     }
 
     public void paintTrace(Trace4Search t) {
         if (painted)
-            RegexViewer.paintLog(this, t.getLogNode(), t.getLogIdx());
+            RegexViewer4Search.paintLog(this, t.getLogNode(), t.getLogIdx());
         else {
             paintRegex();
-            RegexViewer.paintLog(this, t.getLogNode(), t.getLogIdx());
+            RegexViewer4Search.paintLog(this, t.getLogNode(), t.getLogIdx());
         }
     }
 
@@ -5946,7 +5946,7 @@ public final class Pattern4Search implements java.io.Serializable {
         else if (node instanceof BnM)
             return ((BnM) node).getSliceBuffer();
         else if (node instanceof CharProperty)
-            return PatternUtils.convertString(matchSet.iterator().next());
+            return PatternUtils4Search.convertString(matchSet.iterator().next());
         else
             return "";
     }
@@ -6069,15 +6069,15 @@ public final class Pattern4Search implements java.io.Serializable {
             if (chars.size() == 0)
                 return null;
             else if (sliceSet.size() == 0)
-                return PatternUtils.convertString(chars.iterator().next());
+                return PatternUtils4Search.convertString(chars.iterator().next());
             else {
                 Set<Integer> sliceChars = getSliceSetChars(sliceSet);
                 chars.removeAll(sliceChars);
                 if (chars.size() == 0) {
                     chars = getSliceSetChars(sliceSet);
-                    return PatternUtils.convertString(sliceChars.iterator().next()) + pickFromFull(chars);
+                    return PatternUtils4Search.convertString(sliceChars.iterator().next()) + pickFromFull(chars);
                 } else
-                    return PatternUtils.convertString(chars.iterator().next());
+                    return PatternUtils4Search.convertString(chars.iterator().next());
             }
         } else if (sliceSet.size() != 0) {
             Set<Integer> chars = getSliceSetChars(sliceSet);
@@ -6089,7 +6089,7 @@ public final class Pattern4Search implements java.io.Serializable {
     private String pickFromFull(Set<Integer> chars) {
         for (int ch : fullCharSet) {
             if (!chars.contains(ch)) {
-                return PatternUtils.convertString(ch);
+                return PatternUtils4Search.convertString(ch);
             }
         }
         return null;

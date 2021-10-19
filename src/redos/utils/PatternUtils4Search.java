@@ -8,7 +8,7 @@ import redos.regex.Pattern4Search.Node;
 /**
  * Some operation of trace and log are placed here
  */
-public class PatternUtils {    
+public class PatternUtils4Search {
     public static void printStack(Stack<List<Node>> stack) {
     	System.out.println("Stack size: " + stack.size());
     	for (List<Node> list : stack) {
