@@ -916,7 +916,11 @@ public class Analyzer {
             initialize();
             path_start = node;
             path_end = node.direct_next;
-            suffixHead = path_end;
+            if(path_end == null)
+                suffixHead = node;
+            else
+                suffixHead = path_end;
+
             addPath(getDirectPath(path_start.sub_next), false);
             regex = r;
             beginFlag = node.beginFlag;
