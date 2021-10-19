@@ -26,7 +26,7 @@ import java.util.regex.PatternSyntaxException;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import redos.Trace;
+import redos.Trace4Search;
 import redos.utils.PatternUtils;
 import redos.utils.NodeRelation;
 import redos.utils.RegexViewer;
@@ -355,14 +355,14 @@ public final class Pattern4Search implements java.io.Serializable {
      *
      * @return A new matcher for this pattern
      */
-    public Matcher4Search matcher(CharSequence input, Trace trace) {
+    public Matcher4Search matcher(CharSequence input, Trace4Search trace4Search) {
         if (!compiled) {
             synchronized (this) {
                 if (!compiled)
                     compile();
             }
         }
-        Matcher4Search m = new Matcher4Search(this, input, trace);
+        Matcher4Search m = new Matcher4Search(this, input, trace4Search);
         return m;
     }
 
@@ -413,9 +413,9 @@ public final class Pattern4Search implements java.io.Serializable {
      * @throws PatternSyntaxException            If the expression's syntax is
      *                                           invalid
      */
-    public static Trace matches(String regex, CharSequence input, Trace trace) {    // 修改
+    public static Trace4Search matches(String regex, CharSequence input, Trace4Search trace4Search) {    // 修改
         Pattern4Search p = Pattern4Search.compile(regex);
-        Matcher4Search m = p.matcher(input, trace);
+        Matcher4Search m = p.matcher(input, trace4Search);
         return m.matches();
     }
 
@@ -500,11 +500,11 @@ public final class Pattern4Search implements java.io.Serializable {
      *         of this pattern
      * @throws CatastrophicBacktrackingException
      */
-    public String[] split(CharSequence input, int limit, Trace trace) {
+    public String[] split(CharSequence input, int limit, Trace4Search trace4Search) {
         int index = 0;
         boolean matchLimited = limit > 0;
         ArrayList<String> matchList = new ArrayList<>();
-        Matcher4Search m = matcher(input, trace);
+        Matcher4Search m = matcher(input, trace4Search);
 
         // Add segments before each match found
         while (m.find().matchSuccess) {
@@ -580,8 +580,8 @@ public final class Pattern4Search implements java.io.Serializable {
      *         of this pattern
      * @throws CatastrophicBacktrackingException
      */
-    public String[] split(CharSequence input, Trace trace) {
-        return split(input, 0, trace);
+    public String[] split(CharSequence input, Trace4Search trace4Search) {
+        return split(input, 0, trace4Search);
     }
 
     /**
@@ -2753,7 +2753,7 @@ public final class Pattern4Search implements java.io.Serializable {
 
         boolean match(Matcher4Search matcher4Search, int i, CharSequence seq, boolean isTraced) {
             if (isTraced) {
-                if (trace.logMatch(this, i)) {
+                if (trace4Search.logMatch(this, i)) {
                     return this.match(matcher4Search, i, seq);
                 } else
                     return false;
@@ -4443,7 +4443,7 @@ public final class Pattern4Search implements java.io.Serializable {
 
         boolean matchInit(Matcher4Search matcher4Search, int i, CharSequence seq, boolean isTraced) {
             if (isTraced) {
-                if (trace.logMatch(this, i))
+                if (trace4Search.logMatch(this, i))
                     return this.matchInit(matcher4Search, i, seq);
                 else
                     return false;
@@ -5525,8 +5525,8 @@ public final class Pattern4Search implements java.io.Serializable {
      * @return The predicate which can be used for matching on a string
      * @since 1.8
      */
-    public Predicate<String> asPredicate(Trace trace) {
-        return s -> matcher(s, trace).find().matchSuccess;
+    public Predicate<String> asPredicate(Trace4Search trace4Search) {
+        return s -> matcher(s, trace4Search).find().matchSuccess;
     }
 
     /**
@@ -5563,7 +5563,7 @@ public final class Pattern4Search implements java.io.Serializable {
      * @see #split(CharSequence)
      * @since 1.8
      */
-    public Stream<String> splitAsStream(final CharSequence input, Trace trace) {
+    public Stream<String> splitAsStream(final CharSequence input, Trace4Search trace4Search) {
         class MatcherIterator implements Iterator<String> {
             private final Matcher4Search matcher;
             // The start position of the next sub-sequence of input
@@ -5575,7 +5575,7 @@ public final class Pattern4Search implements java.io.Serializable {
             private int emptyElementCount;
 
             MatcherIterator() {
-                this.matcher = matcher(input, trace);
+                this.matcher = matcher(input, trace4Search);
             }
 
             public String next() {
@@ -5636,7 +5636,7 @@ public final class Pattern4Search implements java.io.Serializable {
     /*
      * Most of the additional code are here
      */
-    public static Trace trace; // Trace of one matching
+    public static Trace4Search trace4Search; // Trace of one matching
     private Set<Node> nodes = new HashSet<Node>(); // All nodes (states) of a compiled regex
 
     /**
@@ -5906,7 +5906,7 @@ public final class Pattern4Search implements java.io.Serializable {
         painted = true;
     }
 
-    public void paintTrace(Trace t) {
+    public void paintTrace(Trace4Search t) {
         if (painted)
             RegexViewer.paintLog(this, t.getLogNode(), t.getLogIdx());
         else {
@@ -5957,8 +5957,8 @@ public final class Pattern4Search implements java.io.Serializable {
             return 0;
         String repeated = new String(new char[repeat_cnt]).replace("\0", pump);
         String attack_string = prefix + repeated + suffix;
-        Matcher4Search m = matcher(attack_string, new Trace(threshold, false));
-        Trace t = m.matches();
+        Matcher4Search m = matcher(attack_string, new Trace4Search(threshold, false));
+        Trace4Search t = m.matches();
                 //m.find();
 //        System.out.println("t.getMatchSteps() = " + t.getMatchSteps());
         return t.getMatchSteps();

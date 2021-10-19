@@ -8,7 +8,7 @@ package redos.regex;
 import java.util.Objects;
 import java.util.regex.MatchResult;
 
-import redos.Trace;
+import redos.Trace4Search;
 
 // We modify some function for instrumentation
 public final class Matcher4Search implements MatchResult {
@@ -117,7 +117,7 @@ public final class Matcher4Search implements MatchResult {
     boolean anchoringBounds = true;
 
     // @pGREAT The Trace should be record here.
-    private Trace trace;
+    private Trace4Search trace4Search;
     
     /**
      * No default constructor.
@@ -128,7 +128,7 @@ public final class Matcher4Search implements MatchResult {
     /**
      * All matchers have the state used by Pattern during a match.
      */
-    Matcher4Search(Pattern4Search parent, CharSequence text, Trace trace) {
+    Matcher4Search(Pattern4Search parent, CharSequence text, Trace4Search trace4Search) {
         this.parentPattern4Search = parent;
         this.text = text;
 
@@ -141,8 +141,8 @@ public final class Matcher4Search implements MatchResult {
         reset();
         
         // @pGREAT Initiate trace here
-        this.trace = trace;
-        this.trace.setStr(text.toString());
+        this.trace4Search = trace4Search;
+        this.trace4Search.setStr(text.toString());
 //        System.out.print(text.toString());
 //        trace = new Trace(text.toString());
     }
@@ -165,7 +165,7 @@ public final class Matcher4Search implements MatchResult {
      * @since 1.5
      */
     public MatchResult toMatchResult() {
-        Matcher4Search result = new Matcher4Search(this.parentPattern4Search, text.toString(), this.trace);
+        Matcher4Search result = new Matcher4Search(this.parentPattern4Search, text.toString(), this.trace4Search);
         result.first = this.first;
         result.last = this.last;
         result.groups = this.groups.clone();
@@ -519,7 +519,7 @@ public final class Matcher4Search implements MatchResult {
      *          matches this matcher's pattern
      * @throws CatastrophicBacktrackingException 
      */
-    public Trace matches(){ // 修改
+    public Trace4Search matches(){ // 修改
         return match(from, ENDANCHOR);
     }
 
@@ -539,7 +539,7 @@ public final class Matcher4Search implements MatchResult {
      *          sequence matches this matcher's pattern
      * @throws CatastrophicBacktrackingException 
      */
-    public Trace find(){    	
+    public Trace4Search find(){
         int nextSearchIndex = last;
         if (nextSearchIndex == first)
             nextSearchIndex++;
@@ -555,15 +555,15 @@ public final class Matcher4Search implements MatchResult {
                 groups[i] = -1;
             trace_result = false;
         } else {
-        	Pattern4Search.trace = this.trace;
+        	Pattern4Search.trace4Search = this.trace4Search;
         	trace_result = search(nextSearchIndex);
-        	this.trace = Pattern4Search.trace;
+        	this.trace4Search = Pattern4Search.trace4Search;
         }
         
-        trace.setEffectiveStr(text.toString());
-        trace.matchSuccess = trace_result;
+        trace4Search.setEffectiveStr(text.toString());
+        trace4Search.matchSuccess = trace_result;
         // @pGREAT this trace contain enough info
-        return trace;
+        return trace4Search;
     }
 
     /**
@@ -609,7 +609,7 @@ public final class Matcher4Search implements MatchResult {
      *          sequence matches this matcher's pattern
      * @throws CatastrophicBacktrackingException 
      */
-    public Trace lookingAt(){   // 修改
+    public Trace4Search lookingAt(){   // 修改
         return match(from, NOANCHOR);
     }
 
@@ -1191,7 +1191,7 @@ public final class Matcher4Search implements MatchResult {
      * root of the state machine is called. The state machine will hold the
      * state of the match as it proceeds in this matcher.
      */
-    Trace match(int from, int anchor) { // 修改
+    Trace4Search match(int from, int anchor) { // 修改
         this.hitEnd = false;
         this.requireEnd = false;
         from        = from < 0 ? 0 : from;
@@ -1200,17 +1200,17 @@ public final class Matcher4Search implements MatchResult {
         for (int i = 0; i < groups.length; i++)
             groups[i] = -1;
         acceptMode = anchor;
-        Pattern4Search.trace = this.trace;
+        Pattern4Search.trace4Search = this.trace4Search;
         boolean result = parentPattern4Search.matchRoot.match(this, from, text, true);
         if (!result)
             this.first = -1;
         this.oldLast = this.last;
-        this.trace = Pattern4Search.trace;
+        this.trace4Search = Pattern4Search.trace4Search;
 
-        trace.setEffectiveStr(text.toString());
-        trace.matchSuccess = result;
+        trace4Search.setEffectiveStr(text.toString());
+        trace4Search.matchSuccess = result;
         // @pGREAT this trace contain enough info
-        return trace;
+        return trace4Search;
     }
 
     /**

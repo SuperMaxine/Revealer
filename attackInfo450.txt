@@ -398,7 +398,7 @@
 {"regex":"'FOREIGN KEY \\\\((.*?)\\\\) REFERENCES (?:(.*?)\\\\.)?(.*?)\\\\((.*?)\\\\)[\\\\s]?(MATCH (FULL|PARTIAL|SIMPLE)+)?[\\\\s]?(ON UPDATE (CASCADE|RESTRICT|NO ACTION|SET NULL|SET DEFAULT)+)?[\\\\s]?(ON DELETE (CASCADE|RESTRICT|NO ACTION|SET NULL|SET DEFAULT)+)?[\\\\s]?(DEFERRABLE|NOT DEFERRABLE)?[\\\\s]?(INITIALLY (DEFERRED|IMMEDIATE)+)?'","prefix":"'FOREIGN KEY \\\\ REFERENCES ","index":20455,"pump":"\\","suffix":"\n"}
 {"regex":"'G00X(.*)Y(.*)Z(.*)'","prefix":"'G00X","index":20492,"pump":"YZ","suffix":"\n"}
 {"regex":"'Merge: +([0-9a-f]+ *){2,}'","prefix":"'Merge: ","index":20679,"pump":"a","suffix":"\b"}
-{"regex":"'Stack trace:(.|\\\\n)*?\\\\n\\\\n'","prefix":"'Stack trace:","index":20948,"pump":"\\n","suffix":"\n"}
+{"regex":"'Stack trace4Search:(.|\\\\n)*?\\\\n\\\\n'","prefix":"'Stack trace4Search:","index":20948,"pump":"\\n","suffix":"\n"}
 {"regex":"'[ \\\\t]*([^<>\\\\s]+?)[ \\\\t]*<p=\"([^\"]*\"?)\"/>'","prefix":"'","index":21172,"pump":"t","suffix":">"}
 {"regex":"'[ \\t]*([A-Z0-9a-z_]+)[ \\t]*=[ \\t]*([-0-9]+)[, \\t]*/\\\\*[ \\t]*(.*)[ \\t]*\\\\*/'","prefix":"'0=0/","index":21193,"pump":"\t","suffix":"\b"}
 {"regex":"'[\\\\s\\\\S]*root[\\\\s]*([\\\\d]+)[\\\\s]*(?:[\\\\w]*[\\\\s]*){6}/system/b2g/b2g'","prefix":"'rootd","index":21679,"pump":"w","suffix":"\b"}
@@ -422,7 +422,7 @@
 {"regex":"'\\\\[(\\\\w+)\\\\] (.*?) ::.*::.*::\\\\s*(.*)'","prefix":"'\\w  ::","index":22724,"pump":"::::\\","suffix":"\n"}
 {"regex":"'\\\\b((http|ftp)://\\\\S+[\\\\w/]|RFC[- ]?(\\\\d+)|PEP[- ]?(\\\\d+)|(self\\\\.)?((?:\\\\w|\\\\.)+))\\\\b'","prefix":"'\\b","index":22933,"pump":"\\w","suffix":"\b"}
 {"regex":"'\\\\d+\\\\|[^|]+(?:\\\\|[^|]+)*'","prefix":"\b","index":23106,"pump":"\b","suffix":"|"}
-{"regex":"'\\\\nStack trace:\\\\n(.|\\\\n)*'","prefix":"'\\nStack trace:\\n","index":23161,"pump":"\\n","suffix":"\n"}
+{"regex":"'\\\\nStack trace4Search:\\\\n(.|\\\\n)*'","prefix":"'\\nStack trace4Search:\\n","index":23161,"pump":"\\n","suffix":"\n"}
 {"regex":"'\\\\n\\\\s*ACCEPTS:\\\\s*((?:.|\\\\n)*?)(?:$|(?:\\\\n\\\\n))'","prefix":"'\\n\\ACCEPTS:\\","index":23176,"pump":"\\n","suffix":"\b"}
 {"regex":"'\\\\s*\"((\\\\\\\\.|.)+?)\"\\\\s*=\\\\s*\"(.+?)\";'","prefix":"'\\\"","index":23206,"pump":"\\\\\b","suffix":"\n"}
 {"regex":"'\\\\s*(\\\\w*|\\\\w(\\\\w|\\\\.)*\\\\w)\\\\s*::'","prefix":"'\\\\w","index":23305,"pump":"\\w","suffix":"\b"}

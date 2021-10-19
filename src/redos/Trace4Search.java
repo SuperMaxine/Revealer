@@ -11,7 +11,7 @@ import redos.regex.Pattern4Search.Node;
  * The trace of match detail.
  */
 //public class Trace implements Comparable<Trace>{
-public class Trace{
+public class Trace4Search {
 	public int threshold = 100000; // First judge: it's vulnerable when the number of match steps larger than CATASTROPHIC_THRESHOLD	// 修改
 	
 	public boolean matchSuccess; // String accepted or not
@@ -35,7 +35,7 @@ public class Trace{
 
 	private List<Integer> logIdx;
 	
-	public Trace(int threshold) {	// 修改
+	public Trace4Search(int threshold) {	// 修改
 		this.matchSuccess = false;
 		this.str = null;
 		this.effectiveStr = null;
@@ -47,7 +47,7 @@ public class Trace{
 		this.threshold = threshold;
 	}
 	
-	public Trace(int threshold, boolean isDetail) {	// 修改
+	public Trace4Search(int threshold, boolean isDetail) {	// 修改
 		this(threshold);
 		this.logNode = new LinkedList<Node>();
 		this.logIdx = new LinkedList<Integer>();
@@ -56,8 +56,8 @@ public class Trace{
 	
 	@Override
 	public boolean equals(Object c) {
-		if (c instanceof Trace) {
-			Trace tmp = (Trace) c;
+		if (c instanceof Trace4Search) {
+			Trace4Search tmp = (Trace4Search) c;
 			if (tmp.logSize == this.logSize) {
 				return tmp.logHash == this.logHash;
 			}

@@ -12,7 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import redos.Trace;
+import redos.Trace4Search;
 import redos.regex.Matcher4Search;
 import redos.regex.Pattern4Search;
 import redos.regex.Pattern4Search.Node;
@@ -147,8 +147,8 @@ public class RegexViewer {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String inputStr = input.getText();
-				Matcher4Search m = pattern4Search.matcher(inputStr, new Trace(10000, true));
-				Trace t = m.find();
+				Matcher4Search m = pattern4Search.matcher(inputStr, new Trace4Search(10000, true));
+				Trace4Search t = m.find();
 				curStep = 0;
 				btnn.setEnabled(true);
 				stepsNum.setText(t.getMatchSteps() + "");
@@ -158,8 +158,8 @@ public class RegexViewer {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String inputStr = input.getText();
-				Matcher4Search m = pattern4Search.matcher(inputStr, new Trace(10000, true));
-				Trace t = m.find();
+				Matcher4Search m = pattern4Search.matcher(inputStr, new Trace4Search(10000, true));
+				Trace4Search t = m.find();
 				paintLog(pattern4Search, t.getLogNode(), t.getLogIdx());
 				curStep++;
 				stepsNum.setText("" + (t.getMatchSteps() - curStep));
