@@ -82,14 +82,16 @@ public class RedosTester {
 
 	public static void testSingleRegex(String regex) throws Exception {
 		int max_length = 128;
-		double threshold = 1e5;
+		double threshold = 1e4;
 		BufferedWriter log = new BufferedWriter(new OutputStreamWriter(System.out));
 		redosPattern p = redosPattern.compile(regex);
-		Analyzer redosAnalyzer = new Analyzer(p, max_length);
+		Pattern4Search p4s = Pattern4Search.compile(regex);
+		// Analyzer redosAnalyzer = new Analyzer(p, max_length);
+		Analyzer redosAnalyzer = new Analyzer(p, p4s,  max_length);
 		redosAnalyzer.doStaticAnalysis();
 		redosAnalyzer.doDynamicAnalysis(log, -1, threshold, 10000);
-		if (!redosAnalyzer.isVulnerable())
-			System.out.print("Contains no vulnerablity\n");
+		if (redosAnalyzer.isVulnerable())
+			System.out.print("Contains vulnerablity\n");
 		log.flush();
 	}
 
@@ -106,7 +108,7 @@ public class RedosTester {
 
 				String regex = null;
 				int max_length = 128;
-				double threshold = 1e5;
+				double threshold = 1e4;
 				int cnt = 0;
 				while ((regex = bufferedReader.readLine()) != null) {
 					try {
@@ -116,7 +118,7 @@ public class RedosTester {
 						// Analyzer redosAnalyzer = new Analyzer(p, max_length);
 						Analyzer redosAnalyzer = new Analyzer(p, p4s,  max_length);
 						redosAnalyzer.doStaticAnalysis();
-						redosAnalyzer.doDynamicAnalysis(outVul, cnt, threshold, 10000);
+						redosAnalyzer.doDynamicAnalysis(outVul, cnt, threshold, 100000);
 
 						if (redosAnalyzer.isVulnerable())
 							System.out.print(regex+"Contains vulnerablity\n");
@@ -141,11 +143,13 @@ public class RedosTester {
 // 		RedosTester.testSingleRegex("xyz((abc)*a)\\w(c(a\\wc)*)xyz");
 // 		RedosTester.testSingleRegex("(a+b?a+)+$");
 // 		RedosTester.testSingleRegex("(\\wbc+)*");
-////			RedosTester.testSingleRegex("a*");
+// 		RedosTester.testSingleRegex("PTST/\\d+(?:\\.)?\\d+$");
 //		else if (args.length == 2)
 //			RedosTester.vulValidation(args[0], args[1]);
 //		else
 			RedosTester.testDataset();
+
+
 	}
 
 }

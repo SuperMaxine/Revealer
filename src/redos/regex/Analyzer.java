@@ -252,6 +252,7 @@ public class Analyzer {
             Set<Triplet<Driver, Node, MatchGenerator>> nextSlices = null;
             Set<Integer> nextCharSetFull = null;
             Map<Triplet<Driver, Node, MatchGenerator>, Set<Integer>> nextCharSetMap = null;
+            // 有问题的Flag
             boolean reachFinal = false;
 
             public Driver(DirectedEngine engineSource) {
