@@ -122,7 +122,9 @@ public class RedosTester {
 
 						if (redosAnalyzer.isVulnerable())
 							System.out.print(regex+"Contains vulnerablity\n");
-					} catch (java.util.regex.PatternSyntaxException e) {}
+					} catch (java.util.regex.PatternSyntaxException e) {
+						// throw e;
+					}
 					cnt += 1;
 				}
 

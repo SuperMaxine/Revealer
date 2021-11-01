@@ -42,6 +42,11 @@ public class Analyzer {
         StringBuffer prefix;
         StringBuffer pump;
         StringBuffer suffix;
+
+        // 以下内容是为了获取正确的后缀所建立
+        Node suffixHead;
+        VulStructure getSuffix;
+        ArrayList<Set<Integer>> correctSuffix;
         finalVul(VulStructure newVul, VulType vulType){
             type = vulType;
             vul = newVul;
@@ -49,6 +54,32 @@ public class Analyzer {
 
             prefix = newVul.prefix;
             suffix = newVul.suffix;
+
+            suffixHead = newVul.suffixHead;
+            // // 获取正确后缀实现1
+            // getSuffix = new VulStructure(suffixHead);
+            // 获取正确后缀实现2
+            ArrayList<Node> suffixPath;
+            suffixPath = getDirectPath(suffixHead.direct_next);
+            if(suffixPath.size() == 0)
+                return;
+            getSuffix = new VulStructure(suffixPath, newVul.regex);
+
+            getSuffix.checkPathSharing();
+            if(getSuffix.pumpSets.size()==0)
+                return;
+            correctSuffix = new ArrayList<>();
+            correctSuffix.addAll(getSuffix.pumpSets.get(getSuffix.pumpSets.size() - 1));
+            for(ArrayList<Set<Integer>> oneCorrectSuffix : getSuffix.pumpSets){
+                for(int i = 0; i < oneCorrectSuffix.size(); i++){
+                    correctSuffix.get(i).addAll(oneCorrectSuffix.get(i));
+                }
+            }
+
+            // 优化③
+            for(int i = 0; i < infix.size(); i++){
+                infix.get(i).retainAll(correctSuffix.get(i));
+            }
         }
 
         finalVul(VulStructure newVul, VulStructure newVul2){
@@ -59,6 +90,32 @@ public class Analyzer {
 
             prefix = newVul.prefix;
             suffix = newVul2.suffix;
+
+            suffixHead = newVul2.suffixHead;
+            // // 获取正确后缀实现1
+            // getSuffix = new VulStructure(suffixHead);
+            // 获取正确后缀实现2
+            ArrayList<Node> suffixPath;
+            suffixPath = getDirectPath(suffixHead.direct_next);
+            if(suffixPath.size() == 0)
+                return;
+            getSuffix = new VulStructure(suffixPath, newVul.regex);
+
+            getSuffix.checkPathSharing();
+            if(getSuffix.pumpSets.size()==0)
+                return;
+            correctSuffix = new ArrayList<>();
+            correctSuffix.addAll(getSuffix.pumpSets.get(getSuffix.pumpSets.size() - 1));
+            for(ArrayList<Set<Integer>> oneCorrectSuffix : getSuffix.pumpSets){
+                for(int i = 0; i < oneCorrectSuffix.size(); i++){
+                    correctSuffix.get(i).addAll(oneCorrectSuffix.get(i));
+                }
+            }
+
+            // 优化③
+            for(int i = 0; i < infix.size(); i++){
+                infix.get(i).retainAll(correctSuffix.get(i));
+            }
         }
 
         /**
@@ -946,6 +1003,17 @@ public class Analyzer {
             // pathSharing.add(tmpPath);
         }
 
+        public VulStructure(ArrayList<Node> sourcePath, String r) {
+            initialize();
+            path_start = sourcePath.get(0);
+            path_end = sourcePath.get(sourcePath.size() - 1);
+            addPath(sourcePath, false);
+            regex = r;
+            beginFlag = path_start.beginFlag;
+            endFlag = r.length() - 1;
+            type = VulType.GET_PUMP;
+        }
+
         private String getPrefix() {
             ArrayList<Node> prefixPath = new ArrayList<Node>();
             Node p = path_start.direct_prev;
@@ -1652,30 +1720,34 @@ public class Analyzer {
                 pumpResult = getPump();
 
                 // 进行筛选
-                for(Iterator<String> iterator = pumpResult.keySet().iterator();iterator.hasNext();) {
-                    String key = iterator.next();
-                    // 创建从原始正则中截取的子正则
-                    // Pattern r = Pattern.compile(regex.substring(beginFlag, endFlag));
-                    // Matcher m = r.matcher(key);
-                    // m.find();
-                    // 如果不符合条件，则移除
-                    // if(!m.find()){
-                    if(!Pattern.matches(regex.substring(beginFlag, endFlag), key)){
-                        iterator.remove();
+                if(!(type == VulType.GET_PUMP))
+                    for(Iterator<String> iterator = pumpResult.keySet().iterator();iterator.hasNext();) {
+                        String key = iterator.next();
+                        // 创建从原始正则中截取的子正则
+                        // Pattern r = Pattern.compile(regex.substring(beginFlag, endFlag));
+                        // Matcher m = r.matcher(key);
+                        // m.find();
+                        // 如果不符合条件，则移除
+                        // if(!m.find()){
+                        if(!Pattern.matches(regex.substring(beginFlag, endFlag), key)){
+                            iterator.remove();
+                        }
                     }
-                }
-                if(pumpResult.size()>0)
+                if(pumpResult != null && pumpResult.size()>0)
                     pumpStr = pumpResult.keySet().iterator().next();
 
                 if (pumpStr != null && pumpStr.length() > 0) {
                     pump.append(pumpStr);
-                    prefix.append(getPrefix());
-                    suffix.append(getSuffix());
+                    if(!(type == VulType.GET_PUMP)) {
+                        prefix.append(getPrefix());
+                        suffix.append(getSuffix());
+                    }
                     result = Existance.EXIST;
 
                     for (Map.Entry<String, ArrayList<Set<Integer>>> entry : pumpResult.entrySet()) {
                         pumpSets.add(entry.getValue());
                     }
+                    // 排序pumpSets
                     Collections.sort(pumpSets,(l1, l2) -> Integer.compare(l1.size(), l2.size()));
                 }
             }
@@ -1786,7 +1858,8 @@ public class Analyzer {
 
     public enum VulType {
         LOOP_IN_LOOP, BRANCH_IN_LOOP, LOOP_AFTER_LOOP,
-        ONE_COUNTING, POA, SLQ
+        ONE_COUNTING, POA, SLQ,
+        GET_PUMP
     }
 
     public enum CurState {
@@ -1833,7 +1906,7 @@ public class Analyzer {
         // Todo: 测试用临时代码
         for (Node node  : loopNodes) {
             // VulStructure newVul = new VulStructure(node);
-            VulStructure newVul = new VulStructure(node,regex);
+            VulStructure newVul = new VulStructure(node, regex);
             possibleVuls.add(newVul);
         }
 
@@ -1906,7 +1979,7 @@ public class Analyzer {
             }
         }
 
-        System.out.println(possibleFinalVuls);
+        // System.out.println(possibleFinalVuls);
 
     }
 
@@ -1973,6 +2046,15 @@ public class Analyzer {
     }
 
     private ArrayList<Node> getDirectPath(Node node) {
+        ArrayList<Node> path = new ArrayList<Node>();
+        while (node != null) {
+            path.add(node);
+            node = node.direct_next;
+        }
+        return path;
+    }
+
+    private ArrayList<Node> getDirectPathWithEnd(Node node) {
         ArrayList<Node> path = new ArrayList<Node>();
         while (node != null) {
             path.add(node);
