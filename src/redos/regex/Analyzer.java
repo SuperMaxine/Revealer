@@ -47,6 +47,9 @@ public class Analyzer {
         Node suffixHead;
         VulStructure getSuffix;
         ArrayList<Set<Integer>> correctSuffix;
+
+        // 为了优化②
+        ArrayList<Set<Integer>> suffixSets;
         finalVul(VulStructure newVul, VulType vulType){
             type = vulType;
             vul = newVul;
@@ -217,7 +220,25 @@ public class Analyzer {
 
 
             suffix.append(prefix);
-            suffix.append(pump);
+            // suffix.append(pump);
+            // 优化②，把后缀改成每个counting的反例重复n+1次
+            if(correctSuffix == null)
+                return;
+            suffixSets = new ArrayList<>();
+            for(Set<Integer> aSet : correctSuffix){
+                Set<Integer> tmpSet = new HashSet<>();
+                tmpSet.addAll(Pattern4Search.fullCharSet);
+                tmpSet.retainAll(aSet);
+                suffixSets.add(tmpSet);
+            }
+            suffixSets.addAll(suffixSets);
+            for(Set<Integer> aSet : suffixSets){
+                if(aSet.size() == 0 || aSet.iterator().next() == null){
+                    suffix.append("");
+                }
+                else
+                    suffix.append(aSet.iterator().next());
+            }
         }
     }
 

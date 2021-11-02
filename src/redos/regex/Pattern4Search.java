@@ -210,7 +210,7 @@ public final class Pattern4Search implements java.io.Serializable {
     /**
      * add full charset for unmatch generation
      */
-    Set<Integer> fullCharSet;
+    public static Set<Integer> fullCharSet;
 
     /**
      * The original pattern flags.
