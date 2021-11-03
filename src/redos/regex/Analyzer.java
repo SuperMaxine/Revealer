@@ -83,6 +83,11 @@ public class Analyzer {
             for(int i = 0; i < infix.size(); i++){
                 infix.get(i).retainAll(correctSuffix.get(i));
             }
+
+            // remove prefix from infix
+            for(int i = 0; i < infix.size(); i++){
+                infix.get(i).remove(prefix.charAt(i));
+            }
         }
 
         finalVul(VulStructure newVul, VulStructure newVul2){

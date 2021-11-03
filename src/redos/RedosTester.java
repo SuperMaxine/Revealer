@@ -146,6 +146,7 @@ public class RedosTester {
 // 		RedosTester.testSingleRegex("(a+b?a+)+$");
 // 		RedosTester.testSingleRegex("(\\wbc+)*");
 // 		RedosTester.testSingleRegex("PTST/\\d+(?:\\.)?\\d+$");
+// 		RedosTester.testSingleRegex("^abcd\\s+|\\S+$");
 //		else if (args.length == 2)
 //			RedosTester.vulValidation(args[0], args[1]);
 //		else
