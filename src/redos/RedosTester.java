@@ -17,6 +17,11 @@ import redos.regex.redosPattern;
 import redos.regex.Pattern4Search;
 import redos.regex.Matcher4Search;
 
+
+import redos.regex.redosPattern.Node;
+
+import redos.utils.PatternUtils;
+
 public class RedosTester {
 	public static void vulValidation(String inputPath, String outputPath) throws IOException {
 		File attackInfo = new File(inputPath);
@@ -150,8 +155,13 @@ public class RedosTester {
 //		else if (args.length == 2)
 //			RedosTester.vulValidation(args[0], args[1]);
 //		else
-			RedosTester.testDataset();
 
+			// RedosTester.testDataset();
+
+		double matchingStepCnt = 0;
+		redosPattern pattern = redosPattern.compile("xa+a+y");
+		matchingStepCnt = pattern.getMatchingStepCnt("x", "a", "z", 300, 10000000);
+		System.out.println("matching step:"+matchingStepCnt);
 
 	}
 
