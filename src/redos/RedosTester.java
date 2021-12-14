@@ -150,9 +150,17 @@ public class RedosTester {
 //		else if (args.length == 2)
 //			RedosTester.vulValidation(args[0], args[1]);
 //		else
-			RedosTester.testDataset();
+// 			RedosTester.testDataset();
+		String regex = "(\\wbc+)*";
 
+		BufferedWriter log = new BufferedWriter(new OutputStreamWriter(System.out));
 
+		redosPattern p = redosPattern.compile(regex);
+		Pattern4Search p4s = Pattern4Search.compile(regex);
+		Analyzer redosAnalyzer = new Analyzer(p, p4s,  128);
+		redosAnalyzer.doStaticAnalysis();
+		redosAnalyzer.outputPath();
+		redosAnalyzer.doDynamicAnalysis(log, -1, 1e4, 10000);
 	}
 
 }
