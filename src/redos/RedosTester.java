@@ -144,24 +144,13 @@ public class RedosTester {
 	}
 
 	public static void main(String[] args) throws Exception {
-//		if (args.length == 1)
-////			RedosTester.testSingleRegex(args[0]);
-// 		RedosTester.testSingleRegex("xyz(([a1].[c3])*).([6c]([7a].[9c])*)xyz");
-// 		RedosTester.testSingleRegex("xyz((abc)*a)\\w(c(a\\wc)*)xyz");
-// 		RedosTester.testSingleRegex("(a+b?a+)+$");
-// 		RedosTester.testSingleRegex("(\\wbc+)*");
-// 		RedosTester.testSingleRegex("PTST/\\d+(?:\\.)?\\d+$");
-// 		RedosTester.testSingleRegex("^abcd\\s+|\\S+$");
-//		else if (args.length == 2)
-//			RedosTester.vulValidation(args[0], args[1]);
-//		else
-
-			// RedosTester.testDataset();
 
 		double matchingStepCnt = 0;
-		redosPattern pattern = redosPattern.compile("xa+a+y");
-		matchingStepCnt = pattern.getMatchingStepCnt("x", "a", "z", 300, 10000000);
-		System.out.println("matching step:"+matchingStepCnt);
+		redosPattern pattern = redosPattern.compile("(a|a)*b");
+		for (int i = 1; i < 70; i++){
+			matchingStepCnt = pattern.getMatchingStepCnt("", "a", "", i, 10000000);
+			System.out.println("n:"+i+"\tmatching step:"+matchingStepCnt);
+		}
 
 	}
 

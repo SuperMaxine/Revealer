@@ -6123,8 +6123,8 @@ public final class redosPattern implements java.io.Serializable {
             return 0;
         String repeated = new String(new char[repeat_cnt]).replace("\0", pump);
         String attack_string = prefix + repeated + suffix;
-        System.out.println("attack_string: " + attack_string);
-        System.out.println("attack_string length:" + attack_string.length());
+        // System.out.println("attack_string: " + attack_string);
+        // System.out.println("attack_string length:" + attack_string.length());
         reodsMatcher m = matcher(attack_string, new Trace(threshold, false));
         Trace t = m.find();
         return t.getMatchSteps();
