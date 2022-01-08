@@ -146,9 +146,9 @@ public class RedosTester {
 	public static void main(String[] args) throws Exception {
 
 		double matchingStepCnt = 0;
-		redosPattern pattern = redosPattern.compile("(a|a)*b");
-		for (int i = 1; i < 70; i++){
-			matchingStepCnt = pattern.getMatchingStepCnt("", "a", "", i, 10000000);
+		redosPattern pattern = redosPattern.compile("^(a|(?=abc)\\w)+$");
+		for (int i = 1; i < 100; i++){
+			matchingStepCnt = pattern.getMatchingStepCnt("", "abc", "\\b", i, 10000000);
 			System.out.println("n:"+i+"\tmatching step:"+matchingStepCnt);
 		}
 
