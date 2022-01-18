@@ -74,6 +74,9 @@ public class Trace4Search {
 	public boolean logMatch(Node node, int idx) {
 		finishIndex = finishIndex > idx ? finishIndex : idx;
 		this.eachStep[idx] ++;
+
+		System.out.println(node.toString());
+		System.out.println(idx);
 		
 		if (this.logSize == 0) this.logHash = node.hashCode();
 		else this.logHash = this.logHash ^ node.hashCode();

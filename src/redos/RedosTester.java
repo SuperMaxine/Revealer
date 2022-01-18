@@ -146,11 +146,12 @@ public class RedosTester {
 	public static void main(String[] args) throws Exception {
 
 		double matchingStepCnt = 0;
-		redosPattern pattern = redosPattern.compile("^(a|(?=abc)\\w)+$");
-		for (int i = 1; i < 100; i++){
-			matchingStepCnt = pattern.getMatchingStepCnt("", "abc", "\\b", i, 10000000);
-			System.out.println("n:"+i+"\tmatching step:"+matchingStepCnt);
-		}
+		Pattern4Search pattern = Pattern4Search.compile("^[^\\s>\\/:]+:");
+		matchingStepCnt = pattern.getMatchingStepCnt("", "Ң", "", 30000, 10000000);
+		// for (int i = 1; i < 100; i++){
+		//
+		// 	System.out.println("n:"+i+"\tmatching step:"+matchingStepCnt);
+		// }
 
 	}
 
